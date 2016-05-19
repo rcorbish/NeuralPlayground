@@ -34,8 +34,11 @@ import org.slf4j.LoggerFactory;
 public class DBN extends Model {
 	private static Logger log = LoggerFactory.getLogger(DBN.class);
 
+	public DBN(File trainingData, File testData, File configDir ) throws IOException {
+		super( trainingData, testData, configDir ) ;
+	}
 
-	public DataSet train( File dataFile ) throws Exception {
+	public void train() throws Exception {
 		final int numRows = 1;
 		final int numColumns = 10;
 		int seed = 123;
@@ -44,11 +47,11 @@ public class DBN extends Model {
 
 		getModel().setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
-		log.info("Load data from " + dataFile );
+		log.info("Load data from " + trainingData );
 
 		RecordReader recordReader = new CSVRecordReader(1);
 		// Point to data path. 
-		recordReader.initialize(new FileSplit(dataFile));
+		recordReader.initialize(new FileSplit(trainingData));
 		WritableConverter converter = new WritableConverter() {
 			@Override
 			public Writable convert(Writable writable) throws WritableConverterException {
@@ -62,14 +65,13 @@ public class DBN extends Model {
 			DataSet next = iter.next();
 			getModel().fit(new DataSet(next.getFeatureMatrix(),next.getFeatureMatrix()));
 		}
-		return null ;
 	}
 
 
-	public DataSet test( File dataFile ) throws Exception {
+	public Evaluation<String> test() throws Exception {
 
 		Set<String> labels = new HashSet<>() ;
-		try( BufferedReader br = new BufferedReader( new FileReader(dataFile)) ) {
+		try( BufferedReader br = new BufferedReader( new FileReader(testData)) ) {
 			br.readLine() ;
 			String s = br.readLine() ;
 			while( s != null ) {
@@ -82,7 +84,7 @@ public class DBN extends Model {
 		
 		RecordReader recordReader = new CSVRecordReader(1);
 
-		log.info("Load verification data from " + dataFile ) ;
+		log.info("Load verification data from " + testData ) ;
 		WritableConverter converter = new WritableConverter() {
 			@Override
 			public Writable convert(Writable writable) throws WritableConverterException {
@@ -90,10 +92,10 @@ public class DBN extends Model {
 			}
 		};
 		// Point to data path. 
-		recordReader.initialize(new FileSplit(dataFile));
+		recordReader.initialize(new FileSplit(testData));
 		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, converter, 1, 0, labels.size() );
 		
-		Evaluation eval = new Evaluation( labels.size() );
+		Evaluation<String> eval = new Evaluation<>( labels.size() );
 
 		int n = 0 ;
 		try {
@@ -110,14 +112,15 @@ public class DBN extends Model {
 
 		log.info(eval.stats());
 		log.info("All Done");
-		return null ;
+		return eval ;
 	}
 
 	@Override
-	public MultiLayerConfiguration createModelConfig( File dataFile ) throws IOException {
-		int numInputs = countInputsInDataFile(dataFile) ;
-		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
+	public MultiLayerConfiguration createModelConfig() throws IOException {
+	
+//		int numInputs = countInputsInDataFile(dataFile) ;
+//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
+//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		final int numRows = 1;
 		final int numColumns = 10;

@@ -1,44 +1,53 @@
 package com.rc;
 
 import java.io.File;
-
-import org.nd4j.linalg.dataset.DataSet;
+import java.io.IOException;
 
 public class Run {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		if( args.length < 1 ) {
+			System.err.println( "Missing arguments.");
+			System.exit( -1 );
+		}
+		
+		File trainDataFile = new File( args[0] ) ;
+		File testDataFile = args.length>1 ? new File( args[1] ) : null ;
+		File configDir = args.length>2 ? new File( args[2] ) : null ;
+		Run self = new Run( trainDataFile, testDataFile, configDir ) ;
+		new WebServer( self.nn ) ;
+		self.run( args[0], args[1] ) ;
+	}
+	
+	private MultiLayer nn ;
+	private File configDir ;
+	public Run( File trainingData, File testData, File configDir ) throws IOException {
+		nn = new MultiLayer( trainingData, testData, configDir ) ;
+	}
+	
+	public void run( String trainingData, String testData ) {
 		try {			
 			
-			File trainDataFile = new File( args[0] ) ;
 			//DBN nn = new DBN() ;
-			MultiLayer nn = new MultiLayer() ;
 			
-			if( args.length > 2 ) {
-				File saveDir = new File( args[2] ) ;
-				try {
-					nn.loadModel(saveDir, true ) ;
-				} catch( Throwable t ) {
-					System.err.print( t.getLocalizedMessage() ) ;
-				}
+			try {
+				nn.loadModel( true ) ;
+			} catch( Throwable t ) {
+				System.err.print( t.getLocalizedMessage() ) ;
 			} 
 			
 			if( nn.getModel() == null ) {
-				nn.setModel( nn.createModelConfig(trainDataFile) ) ;
+				nn.setModel( nn.createModelConfig() ) ;
 			}
 			
-			DataSet ds = nn.train( trainDataFile );
-//			if( ds != null ) {
-//				nn.plot(ds);
-//			}
+			nn.train();
 
-			if( args.length > 2 ) {
-				File saveDir = new File( args[2] ) ;
-				nn.saveModel(saveDir, true);
+			if( configDir != null ) {
+				nn.saveModel( true);
 			}
 
-			if( args.length > 1 ) {
-				File testDataFile = new File( args[1] ) ;
-				nn.test(testDataFile);
+			if( testData != null ) {
+				nn.test();
 			}
 		} catch( Throwable t ) {
 			t.printStackTrace();

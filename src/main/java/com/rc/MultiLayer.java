@@ -26,18 +26,22 @@ public class MultiLayer extends Model {
 
 	private static Logger log = LoggerFactory.getLogger(Model.class);
 
+	public MultiLayer(File trainingData, File testData, File configDir ) throws IOException {
+		super( trainingData, testData, configDir ) ;
+	}
+	
 	@Override
-	public DataSet train(File dataFile) throws Exception {
-		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
+	public void train() throws Exception {
+//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
+//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		getModel().setListeners(new ScoreIterationListener(100));
 
-		log.info("Load data from " + dataFile );
+		log.info("Load data from " + trainingData );
 
 		RecordReader recordReader = new CSVRecordReader(1);
 		// Point to data path. 
-		recordReader.initialize(new FileSplit(dataFile));
+		recordReader.initialize(new FileSplit(trainingData));
 		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 178, 0, numOutputs);
 
 		DataSet ds = null ;
@@ -46,28 +50,24 @@ public class MultiLayer extends Model {
 			ds = iter.next();
 			ds.normalizeZeroMeanZeroUnitVariance();
 			getModel().fit( ds ) ;
-		}
-		
-		return ds ;
+		}		
 	}
 	@Override
-	public DataSet test(File dataFile) throws Exception {
-
-		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
+	public Evaluation<String> test() throws Exception {
+//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
+//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		RecordReader recordReader = new CSVRecordReader(1);
 
-		log.info("Load verification data from " + dataFile ) ;
+		log.info("Load verification data from " + testData ) ;
 		// Point to data path. 
-		recordReader.initialize(new FileSplit(dataFile));
+		recordReader.initialize(new FileSplit(testData));
 		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 100, 0, numOutputs );
 
-		Evaluation eval = new Evaluation( numOutputs );
+		Evaluation<String> eval = new Evaluation<>( numOutputs );
 
-		DataSet ds = null ;
 		while(iter.hasNext()) {
-			ds = iter.next();
+			DataSet ds = iter.next();
 			ds.normalizeZeroMeanZeroUnitVariance();
 			INDArray predict2 = getModel().output(ds.getFeatureMatrix(), Layer.TrainingMode.TEST);
 			eval.eval(ds.getLabels(), predict2);
@@ -75,14 +75,14 @@ public class MultiLayer extends Model {
 		log.info(eval.stats());
 		log.info("All Done");
 		
-		return ds ;
+		return eval ;
 	}
 
 	@Override
-	public MultiLayerConfiguration createModelConfig( File dataFile ) throws IOException {
-		int numInputs = countInputsInDataFile(dataFile) ;
-		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
+	public MultiLayerConfiguration createModelConfig() throws IOException {
+//		int numInputs = countInputsInDataFile(dataFile) ;
+//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
+//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
 				.seed(100)
