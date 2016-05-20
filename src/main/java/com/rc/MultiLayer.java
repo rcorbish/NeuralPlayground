@@ -86,7 +86,7 @@ public class MultiLayer extends Model {
 
 		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
 				.seed(100)
-				.iterations(7000)
+				.iterations(500)
 				//.useDropConnect(true)
 				.learningRate(0.1)
 				.regularization(true).l2(1e-4)

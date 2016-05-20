@@ -40,15 +40,15 @@ public class Run {
 				nn.setModel( nn.createModelConfig() ) ;
 			}
 			
-			nn.train();
+//			nn.train();
 
-			if( configDir != null ) {
-				nn.saveModel( true);
-			}
+//			if( configDir != null ) {
+//				nn.saveModel( true);
+//			}
 
-			if( testData != null ) {
-				nn.test();
-			}
+//			if( testData != null ) {
+//				nn.test();
+//			}
 		} catch( Throwable t ) {
 			t.printStackTrace();
 		}

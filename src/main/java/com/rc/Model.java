@@ -22,7 +22,6 @@ import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +46,17 @@ abstract public class Model {
 		this.testData = testData ;
 		this.configDir = configDir ;
 		
-		numInputs = countInputsInDataFile(testData!=null ? testData : trainingData ) ;
-		labelIndices = getLabelIndicesFromDataFile(testData!=null ? testData : trainingData) ;
-		numOutputs = countDistinctOutputsInDataFile(testData!=null ? testData : trainingData, labelIndices) ;
-
+		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
+		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+	}
+	
+	public void setTestDataFile( File testData ) throws IOException {
+		this.testData = testData ;
+		
+		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
+		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
 	}
 	
 	private MultiLayerNetwork model ;

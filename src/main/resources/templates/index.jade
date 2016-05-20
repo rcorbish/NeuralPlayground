@@ -1,12 +1,62 @@
+extends layout
 
-h1 Hello World
+block content
 
-ul#layerInputs
-	for layerInput in layerInputs
-		li #{layerInput} nodes
+	h1 Model layers
 
+	.upload( data-target='upload-train' )
+		| training data
 
-ul#labels
-	for label in labels
-		li #{label} 
-			
+	.upload( data-target='upload-test' )
+		| test data			
+
+	.upload( data-target='upload-config' )
+		| configuration			
+
+	#results
+		
+	script
+		function initUploadDivs() {
+			var divs = document.querySelectorAll( ".upload" ) ;
+			var div ;
+			for( var i=0 ; i<divs.length ; i++ ) {
+				div = divs[i] ;
+				div.ondragover = function (e) { 
+					e.dataTransfer.dropEffect = 'copy';
+					this.className = "upload dropok" ; 
+					e.preventDefault();
+					return false; 
+				}.bind( div ) ;
+				div.ondragend = function () { 
+					this.className = "upload" ; 
+					e.preventDefault();
+					return false; 
+				};
+				div.ondragleave = function () { 
+					this.className = "upload" ; 
+					e.preventDefault();
+					return false; 
+				};
+				div.ondrop = function (e) {
+					this.className = "upload" ; 
+					e.preventDefault();
+					
+					var file = e.dataTransfer.files[0] ;
+					var reader = new FileReader();
+					
+					reader.onload = function (event) {
+						var xhr = new XMLHttpRequest();	
+						xhr.onload = function(e) {
+							document.getElementById( "results" ).innerHTML = "<pre>" + e.target.responseText + "</pre>";
+						} ;
+									
+						xhr.open("POST", this.dataset.target );
+						xhr.send( event.target.result );
+					}.bind( this ) ;
+					reader.readAsText(file);
+					
+					return false;
+				}.bind( div ) ;
+			}
+		}
+		initUploadDivs() ;
