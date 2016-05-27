@@ -32,8 +32,6 @@ public class MultiLayer extends Model {
 	
 	@Override
 	public void train() throws Exception {
-//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		getModel().setListeners(new ScoreIterationListener(100));
 
@@ -42,7 +40,7 @@ public class MultiLayer extends Model {
 		RecordReader recordReader = new CSVRecordReader(1);
 		// Point to data path. 
 		recordReader.initialize(new FileSplit(trainingData));
-		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 178, 0, numOutputs);
+		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 200, 0, numOutputs);
 
 		DataSet ds = null ;
 		log.info("Train model....");
@@ -54,15 +52,13 @@ public class MultiLayer extends Model {
 	}
 	@Override
 	public Evaluation<String> test() throws Exception {
-//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		RecordReader recordReader = new CSVRecordReader(1);
 
 		log.info("Load verification data from " + testData ) ;
 		// Point to data path. 
 		recordReader.initialize(new FileSplit(testData));
-		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 100, 0, numOutputs );
+		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 200, 0, numOutputs );
 
 		Evaluation<String> eval = new Evaluation<>( numOutputs );
 
@@ -80,34 +76,32 @@ public class MultiLayer extends Model {
 
 	@Override
 	public MultiLayerConfiguration createModelConfig() throws IOException {
-//		int numInputs = countInputsInDataFile(dataFile) ;
-//		int labelIndices[] = getLabelIndicesFromDataFile(dataFile) ;
-//		int numOutputs = countDistinctOutputsInDataFile(dataFile, labelIndices) ;
 
 		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
 				.seed(100)
-				.iterations(500)
-				//.useDropConnect(true)
+				.iterations(100)
+				.useDropConnect(true)
 				.learningRate(0.1)
 				.regularization(true).l2(1e-4)
 	            .list(4)
-				.layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numInputs-1)
+				.layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numInputs+3)
 						.activation("relu")
                         .weightInit(WeightInit.XAVIER)
                         .build())
-				.layer(1, new DenseLayer.Builder().nIn(numInputs-1).nOut(numInputs-4)
-						.activation("tanh")
+				.layer(1, new DenseLayer.Builder().nIn(numInputs+3).nOut(numInputs+5)
+						.activation("relu")
                         .weightInit(WeightInit.XAVIER)
                         .build())
-				.layer(2, new DenseLayer.Builder().nIn(numInputs-4).nOut(numInputs-6)
+				.layer(2, new DenseLayer.Builder().nIn(numInputs+5).nOut(numInputs+3)
 						.activation("relu")
                         .weightInit(WeightInit.XAVIER)
                         .build())
 				.layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
 						.weightInit(WeightInit.XAVIER)
 						.activation("softmax")
-						.nIn(numInputs-6).nOut(numOutputs).build())
-				.backprop(true).pretrain(false)
+						.nIn(numInputs+3).nOut(numOutputs).build())
+				.backprop(true)
+				.pretrain(false)
 				.build();
 		return conf ; 
 	}

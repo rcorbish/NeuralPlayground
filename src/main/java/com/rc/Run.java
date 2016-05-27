@@ -16,39 +16,31 @@ public class Run {
 		File configDir = args.length>2 ? new File( args[2] ) : null ;
 		Run self = new Run( trainDataFile, testDataFile, configDir ) ;
 		new WebServer( self.nn ) ;
-		self.run( args[0], args[1] ) ;
+		self.run( args[0], args.length>1 ? args[1] : null ) ;
 	}
 	
-	private MultiLayer nn ;
+	private Model nn ;
 	private File configDir ;
 	public Run( File trainingData, File testData, File configDir ) throws IOException {
-		nn = new MultiLayer( trainingData, testData, configDir ) ;
+//		nn = new MultiLayer( trainingData, testData, configDir ) ;
+		nn = new DBN( trainingData, testData, configDir ) ;
 	}
 	
 	public void run( String trainingData, String testData ) {
-		try {			
-			
-			//DBN nn = new DBN() ;
-			
-			try {
-				nn.loadModel( true ) ;
-			} catch( Throwable t ) {
-				System.err.print( t.getLocalizedMessage() ) ;
-			} 
+		try {						
+			nn.loadModel( true ) ;
 			
 			if( nn.getModel() == null ) {
 				nn.setModel( nn.createModelConfig() ) ;
 			}
 			
-//			nn.train();
+			nn.train();
 
-//			if( configDir != null ) {
-//				nn.saveModel( true);
-//			}
+			nn.saveModel( true);
 
-//			if( testData != null ) {
-//				nn.test();
-//			}
+			if( testData != null ) {
+				nn.test();
+			}
 		} catch( Throwable t ) {
 			t.printStackTrace();
 		}

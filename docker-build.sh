@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker -H tcp://mercury.rac.local:2375 build -t richard/dbn .
+docker -H tcp://mercury.rac.local:2375 build -t rcorbish/neural-playground .
 

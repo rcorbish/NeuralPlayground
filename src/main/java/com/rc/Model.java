@@ -49,10 +49,19 @@ abstract public class Model {
 		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
 		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
 		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+		
 	}
 	
-	public void setTestDataFile( File testData ) throws IOException {
-		this.testData = testData ;
+	public void setTestDataFile( File dataFile ) throws IOException {
+		this.testData = dataFile ;
+		
+		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
+		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+	}
+	
+	public void setTrainDataFile( File dataFile ) throws IOException {
+		this.trainingData = dataFile ;
 		
 		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
 		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
@@ -62,6 +71,9 @@ abstract public class Model {
 	private MultiLayerNetwork model ;
 
 	protected MultiLayerNetwork getModel() { return model; }
+	protected void setModel( String jsonConf ) {
+		setModel( MultiLayerConfiguration.fromJson( jsonConf ) ) ;
+	}	
 	protected void setModel( MultiLayerConfiguration conf ) {
 		setModel(conf, null );
 	}
