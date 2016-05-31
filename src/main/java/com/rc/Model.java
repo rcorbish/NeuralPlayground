@@ -4,21 +4,23 @@ package com.rc;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.canova.api.records.reader.RecordReader;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.nn.api.Updater;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -33,87 +35,105 @@ abstract public class Model {
 	private static String CONFIG_FILE = "config.json" ;
 	private static String UPDATER_FILE = "updater.bin" ;
 
-	protected File trainingData ;
-	protected File testData ;
-	protected File configDir ;
+	protected Path trainingData ;
+	protected Path testData ;
+	protected Path configDir ;
 
 	int numInputs ;
 	int labelIndices[] ;
 	int numOutputs ;
 
-	public Model( File trainingData, File testData, File configDir ) throws IOException {
+	public Model() {
+		this.trainingData = null ;
+		this.testData = null ;
+		this.configDir = null ;
+
+		numInputs = 0 ;
+		labelIndices = null ; 
+		numOutputs = 0 ; 
+	}
+	
+	public Model( Path trainingData, Path testData, Path configDir ) throws IOException {
 		this.trainingData = trainingData ;
 		this.testData = testData ;
 		this.configDir = configDir ;
-		
-		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
-		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
-		
-	}
-	
-	public void setTestDataFile( File dataFile ) throws IOException {
-		this.testData = dataFile ;
-		
-		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
-		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
-	}
-	
-	public void setTrainDataFile( File dataFile ) throws IOException {
-		this.trainingData = dataFile ;
-		
-		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
-		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
-	}
-	
-	private MultiLayerNetwork model ;
 
-	protected MultiLayerNetwork getModel() { return model; }
-	protected void setModel( String jsonConf ) {
-		setModel( MultiLayerConfiguration.fromJson( jsonConf ) ) ;
-	}	
-	protected void setModel( MultiLayerConfiguration conf ) {
-		setModel(conf, null );
+		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
+		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+
 	}
-	protected void setModel( MultiLayerConfiguration conf, INDArray params ) { 
+
+	public void setTestDataFile( Path dataFile ) throws IOException {
+		this.testData = dataFile ;
+
+		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
+		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+	}
+
+	public void setTrainDataFile( Path dataFile ) throws IOException {
+		this.trainingData = dataFile ;
+
+		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
+		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+	}
+
+	protected List<MultiLayerNetwork> models = new ArrayList<>() ;
+
+	public abstract void createModelConfig( int numLayers, int numInputs, int numOutputs ) ;
+	
+	protected void forEach( Consumer<MultiLayerNetwork> l ) { for( MultiLayerNetwork mln : models ) { l.accept(mln) ; } } ;
+	protected MultiLayerNetwork getModel(int ix) { return models.get(ix); }
+	protected int getNumModels() { return models.size() ; }
+	protected void addModel( String jsonConf ) {
+		MultiLayerConfiguration conf = MultiLayerConfiguration.fromJson( jsonConf ) ;		
+		addModel( conf ) ;
+	}	
+	protected void addModel( MultiLayerConfiguration conf ) {
+		log.warn( "Clearing existing models - probably need to chnage this eventually" );
+		models.clear(); 
+
+		addModel(conf, null );
+	}
+	protected void addModel( MultiLayerConfiguration conf, INDArray params ) { 
 		log.debug("Creating new model" ) ;
-		this.model = new MultiLayerNetwork( conf ) ; 
-		this.model.init();
+		MultiLayerNetwork mln = new MultiLayerNetwork( conf ) ;
+		this.models.add( mln ) ; 
+		mln.init();
 		if( params != null ) {
-			model.setParameters(params);
+			mln.setParameters(params);
 		}
 	}
-	
-	protected RecordReader getRecordReader( File dataFile  ) {
+
+	protected RecordReader getRecordReader( Path dataFile  ) {
 		return null ;
 	}
 
 	abstract public void train() throws Exception ;
-	abstract public Evaluation<String> test() throws Exception ;
-	abstract public MultiLayerConfiguration createModelConfig() throws IOException ;
-	
+	abstract public Evaluation test() throws Exception ;
+
 	public void saveModel( boolean saveUpdater ) throws IOException {
 
 		if( configDir != null ) {
-			if( !configDir.isDirectory() && configDir.exists() ) {
-				throw new IOException( "Cannot save to a file. " + configDir.getAbsolutePath() + " must be a directory." ) ;
+			if( !Files.isDirectory( configDir ) ) {
+				Files.createDirectories( configDir) ;
 			}
-			if( !configDir.isDirectory() && !configDir.mkdirs() ) {
-				throw new IOException( "Unable to create save directory: " + configDir.getAbsolutePath() + "." ) ;
-			}
-	
-			//Write the network parameters:
-			try(DataOutputStream dos = new DataOutputStream(new FileOutputStream(getCoefficientFile(configDir)))){
-				Nd4j.write(getModel().params(),dos);
-			}
-	
-			//Write the network configuration:
-			FileUtils.write(getConfigFile(configDir), getModel().getLayerWiseConfigurations().toJson());
-			if( saveUpdater ) {
-				try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getUpdaterFile(configDir)))){
-					oos.writeObject(getModel().getUpdater());
+			
+			for( int modelIndex = 0 ; modelIndex<getNumModels() ; modelIndex++ ) {
+				//Write the network parameters:
+				try(DataOutputStream dos = new DataOutputStream( Files.newOutputStream( getCoefficientFile(modelIndex,configDir)))){
+					Nd4j.write(getModel(modelIndex).params(),dos);
+				}
+
+				//Write the network configuration:
+				Files.write(getConfigFile(modelIndex,configDir), getModel(modelIndex).getLayerWiseConfigurations().toJson().getBytes());
+
+				if( saveUpdater ) {
+					try(ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getUpdaterFile(modelIndex,configDir)))){
+						oos.writeObject(getModel(modelIndex).getUpdater());
+					}
 				}
 			}
 		}
@@ -121,49 +141,47 @@ abstract public class Model {
 
 	public void loadModel( boolean loadUpdater ) throws IOException, ClassNotFoundException {
 
+		PathMatcher pm = FileSystems.getDefault().getPathMatcher( "glob:*." + CONFIG_FILE ) ;
 		if( configDir != null ) {
-			File configFile = getConfigFile(configDir) ;
-			if( !(configFile.canRead() && configFile.isFile()) ) {
-				throw new IOException( "Cannot read data from config file " + configFile.getAbsolutePath() + "." ) ;
-			}
-			//Load network configuration from disk:
-			MultiLayerConfiguration confFromJson = MultiLayerConfiguration.fromJson(FileUtils.readFileToString(configFile));
-	
-	
-			File coefficientsFile = getCoefficientFile(configDir) ;
-			if( !(configFile.canRead() && configFile.isFile()) ) {
-				throw new IOException( "Cannot read data from coefficients file " + coefficientsFile.getAbsolutePath() + "." ) ;
-			}
-	
-			//Load parameters from disk:
-			INDArray newParams;
-			try(DataInputStream dis = new DataInputStream(new FileInputStream(coefficientsFile))){
-				newParams = Nd4j.read(dis);
-			}
-	
-	
-			//Create a MultiLayerNetwork from the saved configuration and parameters
-			setModel( confFromJson, newParams );
-	
-			if( loadUpdater ) {
-				File updaterFile = getUpdaterFile(configDir) ;
-				if( !(updaterFile.canRead() && configFile.isFile()) ) {
-					throw new IOException( "Cannot read data from updater file " + updaterFile.getAbsolutePath() + "." ) ;
+			List<Path> configs = Files.list( configDir )
+			.filter( p -> pm.matches( p.getFileName() ) )
+			.collect( Collectors.toList() ) 
+			;
+
+			for( int modelIndex=0 ; modelIndex<configs.size() ; modelIndex++ ) {
+				Path configFile = configs.get(modelIndex) ;
+			
+				if( !Files.isReadable( configFile ) || !Files.isRegularFile( configFile ) ) {
+					throw new IOException( "Cannot read data from config file " + configFile + "." ) ;
 				}
-				org.deeplearning4j.nn.api.Updater updater;
-				try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(updaterFile))){
-					updater = (org.deeplearning4j.nn.api.Updater) ois.readObject();
+			//Load network configuration 
+				MultiLayerConfiguration conf = MultiLayerConfiguration.fromJson( new String( Files.readAllBytes(configFile) ) ) ;
+
+				Path coefficientsFile = getCoefficientFile(modelIndex, configDir) ;
+				if( Files.isReadable( coefficientsFile ) ) {
+					try(DataInputStream dis = new DataInputStream( Files.newInputStream(coefficientsFile))){
+						INDArray newParams = Nd4j.read(dis);
+						addModel( conf, newParams );
+					}
+				} else {
+					addModel( conf );
 				}
-				getModel().setUpdater(updater);
+
+				if( loadUpdater ) {
+					Path updaterFile = getUpdaterFile(modelIndex,configDir) ;
+					try(ObjectInputStream ois = new ObjectInputStream( Files.newInputStream(updaterFile))){
+						getModel(modelIndex).setUpdater( (Updater) ois.readObject() ) ;
+					}
+				}
 			}
 		}
 	}
 
-	public int countDistinctOutputsInDataFile( File dataFile, int []labelIndices ) throws IOException {
-		try ( BufferedReader br = new BufferedReader( new FileReader( dataFile ) ) ) {
+	public int countDistinctOutputsInDataFile( Path dataFile, int []labelIndices ) throws IOException {
+		try ( BufferedReader br = Files.newBufferedReader(dataFile ) ) {
 			String s = br.readLine() ;
 			Set<String> outputs = new HashSet<>() ;
-			
+
 			StringBuilder key = new StringBuilder() ;
 			while( (s=br.readLine()) != null ) {
 				String cols[] = s.split(",") ;
@@ -178,8 +196,8 @@ abstract public class Model {
 		}
 	}
 
-	public int countInputsInDataFile( File dataFile ) throws IOException {
-		try ( BufferedReader br = new BufferedReader( new FileReader( dataFile ) ) ) {
+	public int countInputsInDataFile( Path dataFile ) throws IOException {
+		try ( BufferedReader br = Files.newBufferedReader(dataFile ) ) {
 			String hdrs = br.readLine() ;			
 			String cols[] = hdrs.split( "," ) ;
 			List<Integer> labels = new ArrayList<>() ;
@@ -195,8 +213,8 @@ abstract public class Model {
 		}
 	}
 
-	public int[] getLabelIndicesFromDataFile( File dataFile ) throws IOException {
-		try ( BufferedReader br = new BufferedReader( new FileReader( dataFile ) ) ) {
+	public int[] getLabelIndicesFromDataFile( Path dataFile ) throws IOException {
+		try ( BufferedReader br = Files.newBufferedReader(dataFile ) ) {
 			String hdrs = br.readLine() ;			
 			String cols[] = hdrs.split( "," ) ;
 			List<Integer> labels = new ArrayList<>() ;
@@ -214,13 +232,13 @@ abstract public class Model {
 		} 
 	}
 
-	protected File getConfigFile( File saveDir ) {
-		return new File( saveDir,CONFIG_FILE ) ;
+	protected Path getConfigFile( int modelIndex, Path saveDir ) {
+		return saveDir.resolve( String.valueOf(modelIndex)+ "." + CONFIG_FILE ) ;
 	}
-	protected File getCoefficientFile( File saveDir ) {
-		return new File( saveDir,COEFFICIENTS_FILE ) ;
+	protected Path getCoefficientFile( int modelIndex, Path saveDir ) {
+		return saveDir.resolve( String.valueOf(modelIndex)+ "." + COEFFICIENTS_FILE ) ;
 	}
-	protected File getUpdaterFile( File saveDir ) {
-		return new File( saveDir,UPDATER_FILE ) ;
+	protected Path getUpdaterFile( int modelIndex, Path saveDir ) {
+		return saveDir.resolve( String.valueOf(modelIndex)+ "." + UPDATER_FILE ) ;
 	}
 }

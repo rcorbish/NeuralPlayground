@@ -11,6 +11,19 @@ block content
 	a( href='config.json', target='_blank' )
 		.upload( data-target='upload-config' ) configuration			
 
+	.design
+		form( action='create', method='post')
+			select(name='layer-type', placeholder='Number of layers' )
+				option(value='MLP') Multi Layer Perceptron
+				option(value='W2V') Word to vector
+				option(value='DBN') Restricted Boltzmann Machine
+				option(value='DBNA') Deep Belief Autoencoder
+				option(value='LSTM') Long Short Term Memory
+			input(type='number', name='num-layers', placeholder='Number of layers', min=1  )
+			input(type='number', name='num-inputs', placeholder='Number of data inputs', min=2  )
+			input(type='number', name='num-outputs', placeholder='Number of data outputs', min=2  )
+			input(type='submit', value='Build my network')
+		
 	#results
 		
 	script
@@ -49,6 +62,7 @@ block content
 						} ;
 									
 						xhr.open("POST", this.dataset.target );
+						xhr.setRequestHeader("Content-type", "text/csv");
 						xhr.send( event.target.result );
 					}.bind( this ) ;
 					reader.readAsText(file);

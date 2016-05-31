@@ -9,29 +9,35 @@ import org.canova.api.split.FileSplit;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Layer;
+import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.api.Updater;
+import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MultiLayer extends Model {
+public class LSTM extends Model {
 
-	private static Logger log = LoggerFactory.getLogger(MultiLayer.class);
+	private static Logger log = LoggerFactory.getLogger(LSTM.class);
 
-	public MultiLayer(Path trainingData, Path testData, Path configDir ) throws IOException {
+	public LSTM(Path trainingData, Path testData, Path configDir ) throws IOException {
 		super( trainingData, testData, configDir ) ;
 	}
 	
-	public MultiLayer() {
+	public LSTM() {
 		super() ;
 	}
 	
@@ -42,10 +48,10 @@ public class MultiLayer extends Model {
 
 		log.info("Load data from " + trainingData );
 
-		RecordReader recordReader = new CSVRecordReader(1);
+		RecordReader recordReader = new CSVRecordReader();
 		// Point to data path. 
 		recordReader.initialize(new FileSplit(trainingData.toFile()));
-		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 200, 0, numOutputs);
+		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 100, 0, numOutputs);
 
 		
 		DataSet ds = null ;
@@ -61,20 +67,19 @@ public class MultiLayer extends Model {
 	@Override
 	public Evaluation test() throws Exception {
 
-		RecordReader recordReader = new CSVRecordReader(1);
+		RecordReader recordReader = new CSVRecordReader();
 
 		log.info("Load verification data from " + testData ) ;
 		// Point to data path. 
 		recordReader.initialize(new FileSplit(testData.toFile()));
-		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 200, 0, numOutputs );
+		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 100, 0, numOutputs );
 
 		Evaluation eval = new Evaluation( numOutputs );
-
 		while(iter.hasNext()) {
 			DataSet ds = iter.next();
 			ds.normalizeZeroMeanZeroUnitVariance();
 			INDArray predict2 = getModel(0).output(ds.getFeatureMatrix(), Layer.TrainingMode.TEST);
-			eval.eval(ds.getLabels(), predict2);
+			eval.eval(ds.getFeatureMatrix(),predict2 );
 		}
 		log.info(eval.stats());
 		log.info("All Done");
@@ -84,33 +89,29 @@ public class MultiLayer extends Model {
 
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
-				.seed(100)
-				.iterations(1000)
-				//.useDropConnect(true)
-				.learningRate(0.1)
-				.regularization(true).l2(1e-4)
+				.seed( 100 )
+				.iterations( 2 )
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                .updater(org.deeplearning4j.nn.conf.Updater.RMSPROP)
+                .regularization(true).l2(1e-5)
+                .weightInit(WeightInit.XAVIER)
+                .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
+                .learningRate(0.0018)
 	            .list(numLayers)
 	            ;
 		
 		for( int i=0 ; i<numLayers-1 ; i++ ) {
-				lb.layer(i, new DenseLayer.Builder().nIn(numInputs).nOut( numInputs )
-						.activation("relu")
-                        .weightInit(WeightInit.XAVIER)
-                        .build()) ;
+				lb.layer(i, new GravesLSTM.Builder().nIn(numInputs).nOut(numInputs)
+                        .activation("softsign").build()) ;
 		}
 		
-		MultiLayerConfiguration conf = lb.layer(numLayers-1, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-					.weightInit(WeightInit.XAVIER)
-					.activation("softmax")
-					.nIn(numInputs).nOut(numOutputs).build())				
+		MultiLayerConfiguration conf = lb.layer(numLayers-1, new RnnOutputLayer.Builder().activation("softmax")
+                .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(numInputs).nOut(numOutputs).build())				
 			.backprop(true)
 			.pretrain(false)
 			.build();
 		
 		addModel(conf);  
 	}
-	
-	
-
 }
 

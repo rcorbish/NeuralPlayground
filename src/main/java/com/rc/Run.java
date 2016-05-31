@@ -2,8 +2,14 @@ package com.rc;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Run {
+	private static Logger log = LoggerFactory.getLogger(Run.class);
 
 	public static void main(String[] args) throws IOException {
 		if( args.length < 1 ) {
@@ -11,36 +17,38 @@ public class Run {
 			System.exit( -1 );
 		}
 		
-		File trainDataFile = new File( args[0] ) ;
-		File testDataFile = args.length>1 ? new File( args[1] ) : null ;
-		File configDir = args.length>2 ? new File( args[2] ) : null ;
+		Path trainDataFile = Paths.get( args[0] ) ;
+		Path testDataFile = args.length>1 ? Paths.get( args[1] ) : null ;
+		Path configDir = args.length>2 ? Paths.get( args[2] ) : null ;
 		Run self = new Run( trainDataFile, testDataFile, configDir ) ;
-		new WebServer( self.nn ) ;
-		self.run( args[0], args.length>1 ? args[1] : null ) ;
+		new WebServer( ) ;
+		//self.run( args[0], args.length>1 ? args[1] : null ) ;
 	}
 	
 	private Model nn ;
 	private File configDir ;
-	public Run( File trainingData, File testData, File configDir ) throws IOException {
+	public Run( Path trainingData, Path testData, Path configDir ) throws IOException {
 //		nn = new MultiLayer( trainingData, testData, configDir ) ;
 		nn = new DBN( trainingData, testData, configDir ) ;
 	}
 	
 	public void run( String trainingData, String testData ) {
-		try {						
-			nn.loadModel( true ) ;
-			
-			if( nn.getModel() == null ) {
-				nn.setModel( nn.createModelConfig() ) ;
+		try {			
+			log.info( "Loading model" ) ;
+			try { 
+				nn.loadModel( true ) ;
+			} catch( Throwable t ) {
+				log.info( "Can't load model." );
 			}
 			
+			log.info( "Training model" ) ;			
 			nn.train();
-
+			
+			log.info( "Saving model" ) ;			
 			nn.saveModel( true);
 
-			if( testData != null ) {
-				nn.test();
-			}
+			log.info( "Testing model" ) ;			
+			nn.test();
 		} catch( Throwable t ) {
 			t.printStackTrace();
 		}

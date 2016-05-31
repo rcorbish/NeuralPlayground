@@ -10,6 +10,27 @@ html {
 h1 {
 	animation: neon 0.75s ease-in-out infinite alternate;	
 }
+
+.design {
+	display: inline-block ;
+	position: relative ;
+	width: 280px ;
+	height: 120px ;
+	border: 3px solid #D8CE5F ;
+	margin: 10px ;
+	padding: 10px ;
+	background-color: #031303 ;
+	vertical-align: middle;
+}
+
+.design input,.design select {
+	display: block ;
+	font-size:10pt ;
+	background-color: #031303 ;
+	color: #FFF697 ;
+	margin: 4px ;
+}
+
 .upload {
 	display: inline-block ;
 	position: relative ;
@@ -38,6 +59,7 @@ h1 {
 	margin: 10px ;
 	padding: 10px ;
 	background-color: #0A220A ;
+	overflow: scroll ;
 }
 
 
