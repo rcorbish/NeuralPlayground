@@ -58,26 +58,26 @@ abstract public class Model {
 		this.testData = testData ;
 		this.configDir = configDir ;
 
-		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+//		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
 		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+//		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
 
 	}
 
 	public void setTestDataFile( Path dataFile ) throws IOException {
 		this.testData = dataFile ;
 
-		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+//		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
 		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+//		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
 	}
 
 	public void setTrainDataFile( Path dataFile ) throws IOException {
 		this.trainingData = dataFile ;
 
-		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
+//		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
 		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
+//		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
 	}
 
 	protected List<MultiLayerNetwork> models = new ArrayList<>() ;

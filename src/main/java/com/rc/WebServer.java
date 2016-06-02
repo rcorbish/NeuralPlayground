@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.MultipartConfigElement;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -84,8 +86,10 @@ public class WebServer {
 
 	public Object create( Request request, Response response ) {
 //		String config = request.body() ;
+		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("/create");
+	    request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+
 		log.info( request.queryParams( "layer-type" ) ) ;
-	//	log.info( config ) ;
 		String layerType = request.queryParams( "layer-type" ) ;
 		String tmp = request.queryParams( "num-inputs" ) ;
 		int numInputs = Integer.parseInt( tmp ) ;
@@ -94,19 +98,19 @@ public class WebServer {
 		tmp = request.queryParams( "num-layers" ) ;
 		int numLayers = Integer.parseInt( tmp ) ;
 		nn = null ;
-		if( request.queryParams( "layer-type" ).equals( "MLP") ) {
+		if( layerType.equals( "MLP") ) {
 			nn = new MultiLayer() ;
-		} else if( request.queryParams( "layer-type" ).equals( "W2V") ) {
+		} else if( layerType.equals( "W2V") ) {
 			nn = new TextAnalyzer() ;
-		} else if( request.queryParams( "layer-type" ).equals( "DBN") ) {
+		} else if( layerType.equals( "DBN") ) {
 			nn = new DBN() ;
-		} else if( request.queryParams( "layer-type" ).equals( "DBNA") ) {
+		} else if( layerType.equals( "DBNA") ) {
 			nn = new DBNA() ;
-		} else if( request.queryParams( "layer-type" ).equals( "LSTM") ) {
+		} else if( layerType.equals( "LSTM") ) {
 			nn = new LSTM() ;
 		}
 		nn.createModelConfig(numLayers, numInputs, numOutputs);
-		return "OK" ;
+		return "Created " + numLayers + " layer " + layerType + " network." ;
 	}
 
 	public Object config( Request request, Response response ) {
