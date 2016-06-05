@@ -19,9 +19,9 @@ block content
 				option(value='DBN') Restricted Boltzmann Machine
 				option(value='DBNA') Deep Belief Autoencoder
 				option(value='LSTM') Long Short Term Memory
-			input(type='number', name='num-layers', placeholder='Number of layers', min=1  )
-			input(type='number', name='num-inputs', placeholder='Number of data inputs', min=2  )
-			input(type='number', name='num-outputs', placeholder='Number of data outputs', min=2  )
+			input(type='number', required, name='num-layers', placeholder='Number of layers', min=2  )
+			input(type='number', required, name='num-inputs', placeholder='Number of data inputs', min=2  )
+			input(type='number', required, name='num-outputs', placeholder='Number of data outputs', min=2  )
 			input(type='submit', value='Build my network')
 		
 	#results
@@ -49,12 +49,12 @@ block content
 					e.preventDefault();
 					return false; 
 				}.bind( div ) ;
-				div.ondragend = function () { 
+				div.ondragend = function (e) { 
 					this.className = "upload" ; 
 					e.preventDefault();
 					return false; 
 				};
-				div.ondragleave = function () { 
+				div.ondragleave = function (e) { 
 					this.className = "upload" ; 
 					e.preventDefault();
 					return false; 
@@ -71,7 +71,9 @@ block content
 						xhr.onload = function(e) {
 							document.getElementById( "results" ).innerHTML = "<pre>" + e.target.responseText + "</pre>";
 						} ;
-									
+						xhr.onerror = function(e) {
+							document.getElementById( "results" ).innerHTML = "<pre>" + e.target.responseText + "</pre>";
+						} ;		
 						xhr.open("POST", this.dataset.target );
 						xhr.setRequestHeader("Content-type", "text/csv");
 						xhr.send( event.target.result );
@@ -83,3 +85,38 @@ block content
 			}
 		}
 		initUploadDivs() ;
+		
+		var timer = setInterval( function() {
+				if( !webSocket || webSocket.readyState===3 ) {
+					webSocket = setupWebSocket() ;
+				} 
+			}
+			, 5000
+		) ;
+		
+		function setupWebSocket() {
+			var protocol = window.location.protocol ;
+			if( protocol === "http:" ) protocol = "ws:" ; else protocol = "wss:" ;
+			webSocket = new WebSocket( protocol + "//" + location.hostname + ":" + location.port + "/messages/");
+			webSocket.onopen = function () {
+				document.getElementById( "results" ).style.border = "" ;
+			} ;
+			
+			webSocket.onmessage = function (msg) {
+				document.getElementById( "results" ).innerHTML = "<pre>" + msg.data + "</pre>" ;
+			} ;
+			
+			webSocket.onerror = function (error) {
+				console.log( error ) ;
+				webSocket.close() ;
+			} ;
+			
+			webSocket.onclose = function () {
+				console.log( "Closed" ) ;
+				document.getElementById( "results" ).style.border = "1px solid red" ;
+			} ;
+			return webSocket ;
+		}
+		
+		var webSocket = setupWebSocket() ;
+		

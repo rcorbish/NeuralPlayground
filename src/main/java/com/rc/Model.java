@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -35,8 +36,6 @@ abstract public class Model {
 	private static String CONFIG_FILE = "config.json" ;
 	private static String UPDATER_FILE = "updater.bin" ;
 
-	protected Path trainingData ;
-	protected Path testData ;
 	protected Path configDir ;
 
 	int numInputs ;
@@ -44,40 +43,15 @@ abstract public class Model {
 	int numOutputs ;
 
 	public Model() {
-		this.trainingData = null ;
-		this.testData = null ;
 		this.configDir = null ;
 
 		numInputs = 0 ;
-		labelIndices = null ; 
+		labelIndices = null ;
 		numOutputs = 0 ; 
 	}
 	
-	public Model( Path trainingData, Path testData, Path configDir ) throws IOException {
-		this.trainingData = trainingData ;
-		this.testData = testData ;
+	public Model( Path configDir ) throws IOException {
 		this.configDir = configDir ;
-
-//		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
-		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-//		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
-
-	}
-
-	public void setTestDataFile( Path dataFile ) throws IOException {
-		this.testData = dataFile ;
-
-//		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
-		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-//		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
-	}
-
-	public void setTrainDataFile( Path dataFile ) throws IOException {
-		this.trainingData = dataFile ;
-
-//		numInputs = countInputsInDataFile(trainingData !=null ? trainingData : testData ) ;
-		labelIndices = getLabelIndicesFromDataFile(trainingData !=null ? trainingData : testData ) ;
-//		numOutputs = countDistinctOutputsInDataFile(trainingData !=null ? trainingData : testData, labelIndices) ;
 	}
 
 	protected List<MultiLayerNetwork> models = new ArrayList<>() ;
@@ -111,8 +85,8 @@ abstract public class Model {
 		return null ;
 	}
 
-	abstract public void train() throws Exception ;
-	abstract public Evaluation test() throws Exception ;
+	abstract public BlockingQueue<String> train( Path data ) throws Exception ;
+	abstract public Evaluation test(  Path ata ) throws Exception ;
 
 	public void saveModel( boolean saveUpdater ) throws IOException {
 

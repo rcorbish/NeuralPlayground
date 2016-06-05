@@ -1,6 +1,8 @@
 package com.rc;
 
+import java.nio.file.Path;
 import java.util.Collection;
+import java.util.concurrent.BlockingQueue;
 
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
@@ -18,7 +20,7 @@ public class TextAnalyzer extends Model {
 	private static Logger log = LoggerFactory.getLogger(TextAnalyzer.class);
 
 	@Override
-	public Evaluation test() throws Exception {
+	public Evaluation test( Path testData ) throws Exception {
 		return null ;
 	}
 	
@@ -27,7 +29,7 @@ public class TextAnalyzer extends Model {
 	}
 
 	@Override
-	public void train() throws Exception {
+	public BlockingQueue<String> train( Path trainingData ) throws Exception {
 		
 		log.info("Load & Vectorize Sentences....");
         // Strip white space before and after for each line
@@ -58,6 +60,8 @@ public class TextAnalyzer extends Model {
         log.info("Closest Words:");
         Collection<String> lst = vec.wordsNearest("professional", 3);
         System.out.println(lst);
+        
+        return null ;
 	}
 
 }

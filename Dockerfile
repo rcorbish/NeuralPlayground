@@ -13,4 +13,4 @@ ENV CP classes:resources
 VOLUME [ "/home/nn/data" ]
 
 ENTRYPOINT [ "sh", "/home/nn/run.sh" ]  
-CMD [ "data/NN-TRAIN.csv", "data/NN-TEST.csv", "data/config" ]
+CMD [ "data/config" ]

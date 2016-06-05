@@ -2,6 +2,7 @@ package com.rc;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.BlockingQueue;
 
 import org.canova.api.records.reader.RecordReader;
 import org.canova.api.records.reader.impl.CSVRecordReader;
@@ -15,7 +16,6 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -27,8 +27,8 @@ public class MultiLayer extends Model {
 
 	private static Logger log = LoggerFactory.getLogger(MultiLayer.class);
 
-	public MultiLayer(Path trainingData, Path testData, Path configDir ) throws IOException {
-		super( trainingData, testData, configDir ) ;
+	public MultiLayer(Path configDir ) throws IOException {
+		super( configDir ) ;
 	}
 	
 	public MultiLayer() {
@@ -36,30 +36,44 @@ public class MultiLayer extends Model {
 	}
 	
 	@Override
-	public void train() throws Exception {
+	public BlockingQueue<String> train( Path trainingData ) throws Exception {
 
-		forEach( mln -> mln.setListeners(new ScoreIterationListener(100) ) ) ;
+		StreamIterationListener sil = new StreamIterationListener(100) ;
+		forEach( mln -> mln.setListeners(sil) ) ;
 
 		log.info("Load data from " + trainingData );
 
 		RecordReader recordReader = new CSVRecordReader(1);
 		// Point to data path. 
 		recordReader.initialize(new FileSplit(trainingData.toFile()));
-		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 200, 0, numOutputs);
-
+		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 250, 0, numOutputs);
 		
-		DataSet ds = null ;
-		log.info("Train model....");
-		
-		while(iter.hasNext()) {
-			ds = iter.next();
-			ds.normalizeZeroMeanZeroUnitVariance();
-			getModel( 0 ).fit( ds ) ;
-		}		
-		log.info("Training done.");
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					log.info("Train model....");
+					
+					while(iter.hasNext()) {
+						DataSet ds = iter.next();
+						ds.normalizeZeroMeanZeroUnitVariance();
+						getModel( 0 ).fit( ds ) ;
+					}		
+					log.info("Training done.");
+					sil.getStream().offer( "Training done.");
+				} catch( IllegalStateException er ) {
+					log.error( "Error during training", er ) ;;
+					sil.getStream().offer( er.getMessage() + "<br><br>Check number of inputs & outputs for compatability with your data." ) ;
+				} finally {
+					sil.getStream().offer( "" ) ;
+				}
+			}
+		} ;
+		new Thread( r ).start(); 
+		return sil.getStream() ;
 	}
 	@Override
-	public Evaluation test() throws Exception {
+	public Evaluation test( Path testData ) throws Exception {
 
 		RecordReader recordReader = new CSVRecordReader(1);
 
@@ -83,6 +97,9 @@ public class MultiLayer extends Model {
 	}
 
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {
+		this.numInputs = numInputs ;
+		this.numOutputs = numOutputs ;
+
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed(100)
 				.iterations(1000)

@@ -17,19 +17,14 @@ public class Run {
 			System.exit( -1 );
 		}
 		
-		Path trainDataFile = Paths.get( args[0] ) ;
-		Path testDataFile = args.length>1 ? Paths.get( args[1] ) : null ;
-		Path configDir = args.length>2 ? Paths.get( args[2] ) : null ;
-		Run self = new Run( trainDataFile, testDataFile, configDir ) ;
+		Path configDir = args.length>2 ? Paths.get( args[0] ) : null ;
+		Run self = new Run( configDir ) ;
 		new WebServer( ) ;
-		//self.run( args[0], args.length>1 ? args[1] : null ) ;
 	}
 	
 	private Model nn ;
 	private File configDir ;
-	public Run( Path trainingData, Path testData, Path configDir ) throws IOException {
-//		nn = new MultiLayer( trainingData, testData, configDir ) ;
-		nn = new DBN( trainingData, testData, configDir ) ;
+	public Run( Path configDir ) throws IOException {
 	}
 	
 	public void run( String trainingData, String testData ) {
@@ -42,16 +37,18 @@ public class Run {
 			}
 			
 			log.info( "Training model" ) ;			
-			nn.train();
+			nn.train( Paths.get(trainingData) );
 			
 			log.info( "Saving model" ) ;			
 			nn.saveModel( true);
 
 			log.info( "Testing model" ) ;			
-			nn.test();
+			nn.test( Paths.get(testData) );
 		} catch( Throwable t ) {
 			t.printStackTrace();
 		}
 	}
 
 }
+
+

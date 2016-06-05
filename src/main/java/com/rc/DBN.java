@@ -6,22 +6,16 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.BlockingQueue;
 
-import org.apache.commons.collections.bag.HashBag;
 import org.canova.api.records.reader.RecordReader;
 import org.canova.api.records.reader.impl.CSVRecordReader;
 import org.canova.api.split.FileSplit;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
-import org.deeplearning4j.datasets.iterator.impl.ListDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -31,14 +25,9 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.conf.layers.RBM;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.api.IterationListener;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +41,8 @@ public class DBN extends Model {
 		super() ;
 	}
 
-	public DBN(Path trainingData, Path testData, Path configDir ) throws IOException {
-		super( trainingData, testData, configDir ) ;
+	public DBN( Path configDir ) throws IOException {
+		super( configDir ) ;
 		numInputs = 1000 ;
 		top1000Words = new ArrayList<>() ;
 	}
@@ -63,9 +52,10 @@ public class DBN extends Model {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void train() throws Exception {
+	public BlockingQueue<String> train( Path trainingData ) throws Exception {
+		StreamIterationListener sil = new StreamIterationListener(100) ;
 
-		forEach( mln -> mln.setListeners(new ScoreIterationListener(100) ) ) ;
+		forEach( mln -> mln.setListeners(sil) ) ;
 
 		log.info("Load data from " + trainingData );
 
@@ -74,18 +64,24 @@ public class DBN extends Model {
 		recordReader.initialize(new FileSplit(trainingData.toFile()));
 		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 200, 0, numOutputs);
 
-		DataSet ds = null ;
-		log.info("Train model....");
+		Runnable r = new Runnable() {
+			public void run() {
+				log.info("Train model....");
 
-		while(iter.hasNext()) {
-			ds = iter.next();
-			ds.normalizeZeroMeanZeroUnitVariance();
-			getModel( 0 ).fit( ds ) ;
-		}		
+				while(iter.hasNext()) {
+					DataSet ds = iter.next();
+					ds.normalizeZeroMeanZeroUnitVariance();
+					getModel( 0 ).fit( ds ) ;
+				}		
+				log.info("Training done.");
+			}
+		} ;
+		new Thread( r ).start(); 
+		return sil.getStream() ;
 	}
 
 
-	public Evaluation test() throws Exception {
+	public Evaluation test( Path testData ) throws Exception {
 
 		RecordReader recordReader = new CSVRecordReader(1);
 
@@ -110,6 +106,9 @@ public class DBN extends Model {
 
 
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {
+		this.numInputs = numInputs ;
+		this.numOutputs = numOutputs ;
+
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed(100)
 				.iterations(400)

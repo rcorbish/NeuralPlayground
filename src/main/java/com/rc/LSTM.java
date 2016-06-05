@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
 import org.deeplearning4j.eval.Evaluation;
@@ -18,7 +19,6 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -30,17 +30,17 @@ public class LSTM extends Model {
 
 	private static Logger log = LoggerFactory.getLogger(LSTM.class);
 
-	public LSTM(Path trainingData, Path testData, Path configDir ) throws IOException {
-		super( trainingData, testData, configDir ) ;
+	public LSTM( Path configDir ) throws IOException {
+		super( configDir ) ;
 	}
 
 	public LSTM() {
 		super() ;
 	}
 
-	
+
 	protected Collection<DataSet> getDatasets( Path source ) throws IOException {
-		
+
 		log.info("Load data from " + source );
 
 		List<String[]> cols = Files.lines( source ) 
@@ -51,7 +51,7 @@ public class LSTM extends Model {
 		List<DataSet> dsets = new ArrayList<>() ;
 
 		int timeSeriesLength = cols.get(0).length ;
-		
+
 		int numRowsProcessed = 0 ;
 		while( numRowsProcessed<cols.size() ) {
 
@@ -65,7 +65,7 @@ public class LSTM extends Model {
 				ix[0] = i ;
 				String row[] = cols.get(numRowsProcessed) ;
 				numRowsProcessed++ ;
-				
+
 				for( int j=1 ; j<timeSeriesLength ; j++ ) {
 					ix[2] = j ;
 					int v = row[j-1].charAt(0) - 'A' ;
@@ -73,7 +73,7 @@ public class LSTM extends Model {
 					if( v<0 ) v = 0 ;
 					ix[1] = v ;
 					input.putScalar( ix, 1.0 ) ;
-					
+
 					int w = row[j].charAt(0) - 'A' ;
 					if( w>numInputs ) w = numInputs-1 ;
 					if( w<0 ) w = 0 ;
@@ -85,27 +85,35 @@ public class LSTM extends Model {
 		}
 		return dsets ;
 	}
-	
-	@Override
-	public void train() throws Exception {
 
-		forEach( mln -> mln.setListeners(new ScoreIterationListener(100) ) ) ;
+	@Override
+	public BlockingQueue<String> train( Path trainingData ) throws Exception {
+
+		StreamIterationListener sil = new StreamIterationListener(100) ;
+		forEach( mln -> mln.setListeners(sil) ) ;
 
 		Collection<DataSet> dsets = getDatasets( trainingData ) ;
 
-		for( int epoch=0 ; epoch<100 ; epoch++ ) {
-			log.info("Train model - epoch {}", epoch );
-	
-			for( DataSet ds : dsets ) { 
-				getModel( 0 ).fit( ds ) ;
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				for( int epoch=0 ; epoch<100 ; epoch++ ) {
+					log.info("Train model - epoch {}", epoch );
+
+					for( DataSet ds : dsets ) { 
+						getModel( 0 ).fit( ds ) ;
+					}		
+				}
+				log.info("Training done.");
 			}
-		}			
-		log.info("Training done.");
+		} ;
+		new Thread( r ).start(); 
+		return sil.getStream() ;
 	}
-	
-	
+
+
 	@Override
-	public Evaluation test() throws Exception {
+	public Evaluation test(Path testData) throws Exception {
 
 		Collection<DataSet> dsets = getDatasets( testData ) ;
 
@@ -123,7 +131,7 @@ public class LSTM extends Model {
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {
 		this.numInputs = numInputs ;
 		this.numOutputs = numOutputs ;
-		
+
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed( 100 )
 				.iterations( 2 )
