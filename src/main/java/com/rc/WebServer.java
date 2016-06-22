@@ -87,7 +87,7 @@ public class WebServer {
 
 		Filter filter = new RequiresAuthenticationFilter(config, "Basic") ;
 		before("/", (re,rs) -> { 
-			if( !re.pathInfo().equals("/login") ) {
+			if( !re.pathInfo().equals("/login") && !re.pathInfo().equals("/")  ) {
 				filter.handle(re,rs) ; 
 			}
 		} );
@@ -112,15 +112,17 @@ public class WebServer {
 		if( nn == null ) {
 			log.error( "Can't train a network that's not yet created." ); 
 			halt( 200, "Error: Please create a network before training." ) ;
-			return "FAIL" ;
+			return "Error: Please create a network before training." ;
 		}
 		BlockingQueue<String> op = nn.train( p ) ;
+		String rc = "Nothing happened!" ;
 		String s = op.take() ;
 		while( s.length()>0 ) {
-			WebSocketServer.sender.getRemote().sendString( s ) ; 
+			rc = s ;
+			WebSocketServer.send( s ) ; 
 			s = op.take() ;
 		}
-		return "OK" ;
+		return rc ;
 	}
 	
 	public Object uploadTest( Request request, Response response ) throws Exception {
