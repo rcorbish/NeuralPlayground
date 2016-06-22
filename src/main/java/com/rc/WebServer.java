@@ -87,7 +87,7 @@ public class WebServer {
 
 		Filter filter = new RequiresAuthenticationFilter(config, "Basic") ;
 		before("/", (re,rs) -> { 
-			if( !re.pathInfo().equals("/login") && !re.pathInfo().equals("/")  ) {
+			if( !re.pathInfo().equals("/login") && !re.pathInfo().equals("/") && !re.pathInfo().equals("/instructions")  ) {
 				filter.handle(re,rs) ; 
 			}
 		} );
@@ -96,6 +96,8 @@ public class WebServer {
 		get( "/login", callback) ;
 
 		get( "/", this::home, new JadeTemplateEngine( jadeConfig ) ) ;
+		get( "/instructions", this::instructions, new JadeTemplateEngine( jadeConfig ) ) ;
+		
 		get( "/config.json", this::config ) ;
 		post( "/create", this::create ) ;
 		post( "/upload-train", this::uploadTrain ) ;
@@ -186,7 +188,10 @@ public class WebServer {
 		return new ModelAndView( map, "templates/index" )  ;
 	}
 
-
+	public ModelAndView instructions( Request request, Response response ) {
+		Map<String,Object> map = new HashMap<>() ;
+		return new ModelAndView( map, "templates/instructions" )  ;
+	}
 
 	protected String getUsernameFromRequest( Request request ) {
 		String h = request.headers( "Authorization" ) ;

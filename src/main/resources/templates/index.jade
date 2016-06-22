@@ -2,7 +2,7 @@ extends layout
 
 block content
 
-	h1 Model layers
+	h1 Neural Playground
 
 	.upload( data-target='upload-train' ) training data
 
@@ -25,7 +25,9 @@ block content
 			input(type='submit', value='Build my network')
 		
 	#results
-		
+	
+	a( href='instructions' ) Instructions
+	
 	script
 		document.getElementById( 'create-nn' ).onsubmit = function() {
 			var xhr = new XMLHttpRequest();	

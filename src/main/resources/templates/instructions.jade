@@ -1,0 +1,64 @@
+extends layout
+
+block content
+
+	h1 
+		a( href='/') Neural Playground
+
+	h2 Steps
+		
+	ol
+		li create a network 
+		li upload a CSV file to train it
+		li upload a CSV file to see how well it learned
+	
+	p Choose a network type, a good one to start with is multi layer perceptron
+	p Pick the number of layers ( 3 or 4 is a reasonable start )
+	
+	h3 The CSV file
+	ul
+	li should contain a number of columns, each data element should be a number. The first column (col A) is the label for the data, the remaining columns are the inputs.
+	li should have the same number of columns, plus 1 (for the label in Col A) as the number of input nodes
+	li should have N distinct values in column label (col A) where N is the number of output nodes
+	 
+	h3 An example ...
+	
+	the CSV file:
+	
+	table
+		tr
+			th A
+			th B
+			th C
+			th D
+			th E
+		tr
+			td 1
+			td 0.1
+			td 0.3
+			td 0.4
+			td 0.2
+		tr
+			td 2
+			td 0.2
+			td 0.7
+			td 0.2
+			td 0.1
+		tr
+			td 1
+			td 0.1
+			td 0.1
+			td 0.56
+			td 0.9
+		tr
+			td 1
+			td 0.1
+			td 0.3
+			td 0.6
+			td 0.02
+
+	A suitable network for this CSV file ...
+	ul
+		li MLP 3 layer network
+		li 4 input layers  ( cols B,C,D and E )
+		li 2 output layers ( 1 or 2 in col A )
