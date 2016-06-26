@@ -11,21 +11,44 @@ html {
 	color: #002929;
 }
 
-.close-icon {
+.menu-icon {
 	position: absolute;
 	left: 3px;
 	top: 3px;
 	z-index: 1;
 }
 
-.pause-icon {
+
+.close-icon {
 	position: absolute;
 	left: 33px;
 	top: 3px;
 	z-index: 1;
 }
 
-.grid-menu {
+.pause-icon {
+	position: absolute;
+	left: 63px;
+	top: 3px;
+	z-index: 1;
+}
+
+.connection-status-icon {
+	position: absolute;
+	left: 93px;
+	top: 3px;
+	z-index: 1;
+}
+
+.disconnected {
+	animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+	to { visibility:hidden; }
+}
+
+.grid-menu-open {
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -33,9 +56,35 @@ html {
 	width: 100px;
 	background-color: #13073A;
 	z-index: 0;
+	transition: all .25s;
 }
 
-.grid-workspace {
+.grid-menu-closed {
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 0;
+	background-color: #13073A;
+	z-index: 0;
+	overflow: hidden ;
+	transition: all .25s;
+}
+
+.grid-menu-open img {
+	position: absolute ;
+	margin-right: 3px ;
+	margin-top: 3px ;
+	right: 0 ;
+}
+.grid-menu-closed img {
+	position: absolute ;
+	margin-right: 3px ;
+	margin-top: 3px ;
+	right: 0 ;
+}
+
+.grid-workspace-menu {
 	position: absolute;
 	left: 100px;
 	top: 0;
@@ -43,6 +92,18 @@ html {
 	right: 0;
 	background-color: #262527;
 	z-index: 1;
+	transition: all .25s;
+}
+
+.grid-workspace-nomenu {
+	position: absolute;
+	left: 0 ;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	background-color: #262527;
+	z-index: 1;
+	transition: all .25s;
 }
 
 .grid-icon {
@@ -64,7 +125,7 @@ html {
 
 .report-title {
 	position: absolute;
-	left: 100px;
+	left: 120px;
 	top: 0 ;
 	margin: 5px ;
 }
@@ -87,19 +148,36 @@ html {
 </head>
 <body>
 
-	<div id='menu' class='grid-menu'>
-		<div id='grid1' data-index='1' data-report-name='Rpt1.html'
-			class='grid-icon'></div>
+	<div id='menu' class='grid-menu-open'>
+		<img src="data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAzMzAgMzMwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzMzAgMzMwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CjxwYXRoIGlkPSJYTUxJRF82XyIgZD0iTTE2NSwwQzc0LjAxOSwwLDAsNzQuMDE5LDAsMTY1czc0LjAxOSwxNjUsMTY1LDE2NXMxNjUtNzQuMDE5LDE2NS0xNjVTMjU1Ljk4MSwwLDE2NSwweiBNMjA1LjYwNiwyMzQuMzk0ICBjNS44NTgsNS44NTcsNS44NTgsMTUuMzU1LDAsMjEuMjEzQzIwMi42NzgsMjU4LjUzNSwxOTguODM5LDI2MCwxOTUsMjYwcy03LjY3OC0xLjQ2NC0xMC42MDYtNC4zOTRsLTgwLTc5Ljk5OCAgYy0yLjgxMy0yLjgxMy00LjM5NC02LjYyOC00LjM5NC0xMC42MDZjMC0zLjk3OCwxLjU4LTcuNzk0LDQuMzk0LTEwLjYwN2w4MC04MC4wMDJjNS44NTctNS44NTgsMTUuMzU1LTUuODU4LDIxLjIxMywwICBjNS44NTgsNS44NTcsNS44NTgsMTUuMzU1LDAsMjEuMjEzbC02OS4zOTMsNjkuMzk2TDIwNS42MDYsMjM0LjM5NHoiIGZpbGw9IiM1Nzg1ODUiLz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPGc+CjwvZz4KPC9zdmc+Cg==" 
+			onclick="hideMenu()" />
+		<div id='grid1' data-index='1' data-report-name='Rpt1.html'	class='grid-icon'></div>
 		<div id='grid2' data-index='2' data-report-name='2' class='grid-icon'></div>
 		<div id='grid3' data-index='3' data-report-name='3' class='grid-icon'></div>
 		<div id='grid4' data-index='4' data-report-name='4' class='grid-icon'></div>
 		<div id='grid5' data-index='5' data-report-name='5' class='grid-icon'></div>
 	</div>
-	<div id="workspace" class='grid-workspace'></div>
+	<div id="workspace" class='grid-workspace-menu'></div>
 
 	<table class='grid'></table>
 
 	<script>
+	function hideMenu() {
+		var firstOpenGrid = document.querySelector( ".grid-open" ) ;
+		if( firstOpenGrid ) {
+			var menu = document.getElementById( "menu" ) ;
+			menu.className = "grid-menu-closed" ;
+			var workspace = document.getElementById( "workspace" ) ;
+			workspace.className = "grid-workspace-nomenu" ;
+		}
+	}
+	function showMenu() {
+		var menu = document.getElementById( "menu" ) ;
+		menu.className = "grid-menu-open" ;
+		var workspace = document.getElementById( "workspace" ) ;
+		workspace.className = "grid-workspace-menu" ;
+	}
+
 function loadPage( grid, f ) {
 	var xhr = new XMLHttpRequest() ;
 	xhr.onreadystatechange = function() {		
@@ -118,6 +196,12 @@ function loadPage( grid, f ) {
 		    closeIcon.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDQ0IDQ0IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA0NCA0NCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CiAgPHBhdGggZD0ibTIyLDBjLTEyLjIsMC0yMiw5LjgtMjIsMjJzOS44LDIyIDIyLDIyIDIyLTkuOCAyMi0yMi05LjgtMjItMjItMjJ6bTMuMiwyMi40bDcuNSw3LjVjMC4yLDAuMiAwLjMsMC41IDAuMywwLjdzLTAuMSwwLjUtMC4zLDAuN2wtMS40LDEuNGMtMC4yLDAuMi0wLjUsMC4zLTAuNywwLjMtMC4zLDAtMC41LTAuMS0wLjctMC4zbC03LjUtNy41Yy0wLjItMC4yLTAuNS0wLjItMC43LDBsLTcuNSw3LjVjLTAuMiwwLjItMC41LDAuMy0wLjcsMC4zLTAuMywwLTAuNS0wLjEtMC43LTAuM2wtMS40LTEuNGMtMC4yLTAuMi0wLjMtMC41LTAuMy0wLjdzMC4xLTAuNSAwLjMtMC43bDcuNS03LjVjMC4yLTAuMiAwLjItMC41IDAtMC43bC03LjUtNy41Yy0wLjItMC4yLTAuMy0wLjUtMC4zLTAuN3MwLjEtMC41IDAuMy0wLjdsMS40LTEuNGMwLjItMC4yIDAuNS0wLjMgMC43LTAuM3MwLjUsMC4xIDAuNywwLjNsNy41LDcuNWMwLjIsMC4yIDAuNSwwLjIgMC43LDBsNy41LTcuNWMwLjItMC4yIDAuNS0wLjMgMC43LTAuMyAwLjMsMCAwLjUsMC4xIDAuNywwLjNsMS40LDEuNGMwLjIsMC4yIDAuMywwLjUgMC4zLDAuN3MtMC4xLDAuNS0wLjMsMC43bC03LjUsNy41Yy0wLjIsMC4xLTAuMiwwLjUgMy41NTI3MWUtMTUsMC43eiIgZmlsbD0iIzI2MTc1OCIvPgo8L3N2Zz4K" ;
 		    closeIcon.onclick = f.bind( grid ) ; 
 		    grid.appendChild( closeIcon ) ;
+		    
+		    var menuIcon = document.createElement( "img" ) ;
+		    menuIcon.className = "menu-icon" ;
+		    menuIcon.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDU2IDU2IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1NiA1NjsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiPgo8cGF0aCBkPSJNMjgsMEMxMi41NjEsMCwwLDEyLjU2MSwwLDI4czEyLjU2MSwyOCwyOCwyOHMyOC0xMi41NjEsMjgtMjhTNDMuNDM5LDAsMjgsMHogTTQwLDQxSDE2Yy0xLjEwNCwwLTItMC44OTYtMi0yczAuODk2LTIsMi0yICBoMjRjMS4xMDQsMCwyLDAuODk2LDIsMlM0MS4xMDQsNDEsNDAsNDF6IE00MCwzMEgxNmMtMS4xMDQsMC0yLTAuODk2LTItMnMwLjg5Ni0yLDItMmgyNGMxLjEwNCwwLDIsMC44OTYsMiwyUzQxLjEwNCwzMCw0MCwzMHogICBNNDAsMTlIMTZjLTEuMTA0LDAtMi0wLjg5Ni0yLTJzMC44OTYtMiwyLTJoMjRjMS4xMDQsMCwyLDAuODk2LDIsMlM0MS4xMDQsMTksNDAsMTl6IiBmaWxsPSIjMjYxNzU4Ii8+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=" ;
+		    menuIcon.onclick = showMenu ;
+		    grid.appendChild( menuIcon ) ;
 		}
 	} ;
 	xhr.open("GET", grid.dataset.reportName, true);
@@ -158,6 +242,7 @@ function setupGridIcon( grid ) {
 	grid.innerHTML = grid.dataset.reportName ;
 	grid.className = "grid-icon" ;
 	grid.onclick = f.bind( grid ) ; 
+	showMenu() ;
 }
 
 var grids = document.querySelectorAll( ".grid-icon" ) ;

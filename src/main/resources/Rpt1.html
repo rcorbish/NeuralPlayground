@@ -4,23 +4,6 @@
 <meta charset="UTF-8">
 <title>Table</title>
 
-<style>
-.connection-status-icon {
-	position: absolute;
-	left: 63px;
-	top: 3px;
-	z-index: 1;
-}
-
-.disconnected {
-	animation: blink-animation 1s steps(2, start) infinite;
-}
-
-@keyframes blink-animation {
-	to { visibility:hidden; }
-}
-</style>
-
 </head>
 
 <body>
@@ -94,6 +77,7 @@
 
 		function socketClose() {
 			socket = null;
+			pause() ;
 			updateStatus(false);
 		}
 
