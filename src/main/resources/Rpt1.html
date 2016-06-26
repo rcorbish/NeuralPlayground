@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Table</title>
+
+<style>
+.connection-status-icon {
+	position: absolute;
+	left: 63px;
+	top: 3px;
+	z-index: 1;
+}
+
+.disconnected {
+	animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+	to { visibility:hidden; }
+}
+</style>
+
+</head>
+
+<body>
+
+	<img
+		src="data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDI2IDI2IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNiAyNiIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CiAgPGc+CiAgICA8cGF0aCBkPSJNMjUuNyw4LjNDMjIuNCw1LDE4LDMsMTMsM1MzLjUsNSwwLjMsOC4zQzAuMSw4LjUsMCw4LjcsMCw5YzAsMC4zLDAuMSwwLjUsMC4zLDAuN2wxLjQsMS40YzAuNCwwLjQsMSwwLjQsMS40LDAgICBDNS42LDguNiw5LjEsNywxMyw3czcuNCwxLjYsOS45LDQuMWMwLjQsMC40LDEsMC40LDEuNCwwbDEuNC0xLjRDMjUuOSw5LjUsMjYsOS4zLDI2LDlTMjUuOSw4LjQsMjUuNyw4LjN6IiBmaWxsPSIjODAxYTE1Ii8+CiAgICA8cGF0aCBkPSJtMTMsMTFjLTIuOCwwLTUuMiwxLjEtNywyLjktMC40LDAuNC0wLjQsMSAwLDEuNGwxLjQsMS40YzAuNCwwLjQgMSwwLjQgMS40LDAgMS4xLTEuMSAyLjYtMS43IDQuMi0xLjcgMS42LDAgMy4xLDAuNyA0LjIsMS43IDAuNCwwLjQgMSwwLjQgMS40LDBsMS40LTEuNGMwLjQtMC40IDAuNC0xIDAtMS40LTEuOC0xLjgtNC4yLTIuOS03LTIuOXoiIGZpbGw9IiM4MDFhMTUiLz4KICAgIDxjaXJjbGUgY3g9IjEzIiBjeT0iMjEiIHI9IjIiIGZpbGw9IiM4MDFhMTUiLz4KICA8L2c+Cjwvc3ZnPgo="
+		class="connection-status-icon"></img>
+	<img class="pause-icon"></img>
+	<p class='report-title'>Report No.1</p>
+	<table>
+		<colgroup>
+		</colgroup>
+		<thead>
+			<tr>
+				<th>A</th>
+				<th>B</th>
+				<th>C</th>
+				<th>D</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>1.043</td>
+				<td>2.56437</td>
+				<td>43.65</td>
+				<td>1348</td>
+			</tr>
+		</tbody>
+	</table>
+	<script>
+		function updateStatus(isConnected) {
+			var statusIcon = document.querySelector(".connection-status-icon");
+			if (statusIcon) {
+				if (isConnected) {
+					statusIcon.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDI2IDI2IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNiAyNiIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CiAgPGc+CiAgICA8cGF0aCBkPSJNMjUuNyw4LjNDMjIuNCw1LDE4LDMsMTMsM1MzLjUsNSwwLjMsOC4zQzAuMSw4LjUsMCw4LjcsMCw5YzAsMC4zLDAuMSwwLjUsMC4zLDAuN2wxLjQsMS40YzAuNCwwLjQsMSwwLjQsMS40LDAgICBDNS42LDguNiw5LjEsNywxMyw3czcuNCwxLjYsOS45LDQuMWMwLjQsMC40LDEsMC40LDEuNCwwbDEuNC0xLjRDMjUuOSw5LjUsMjYsOS4zLDI2LDlTMjUuOSw4LjQsMjUuNyw4LjN6IiBmaWxsPSIjMDc0NjAwIi8+CiAgICA8cGF0aCBkPSJtMTMsMTFjLTIuOCwwLTUuMiwxLjEtNywyLjktMC40LDAuNC0wLjQsMSAwLDEuNGwxLjQsMS40YzAuNCwwLjQgMSwwLjQgMS40LDAgMS4xLTEuMSAyLjYtMS43IDQuMi0xLjcgMS42LDAgMy4xLDAuNyA0LjIsMS43IDAuNCwwLjQgMSwwLjQgMS40LDBsMS40LTEuNGMwLjQtMC40IDAuNC0xIDAtMS40LTEuOC0xLjgtNC4yLTIuOS03LTIuOXoiIGZpbGw9IiMwNzQ2MDAiLz4KICAgIDxjaXJjbGUgY3g9IjEzIiBjeT0iMjEiIHI9IjIiIGZpbGw9IiMwNzQ2MDAiLz4KICA8L2c+Cjwvc3ZnPgo=";
+					statusIcon.className = "connection-status-icon";
+				} else {
+					statusIcon.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDI2IDI2IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNiAyNiIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CiAgPGc+CiAgICA8cGF0aCBkPSJNMjUuNyw4LjNDMjIuNCw1LDE4LDMsMTMsM1MzLjUsNSwwLjMsOC4zQzAuMSw4LjUsMCw4LjcsMCw5YzAsMC4zLDAuMSwwLjUsMC4zLDAuN2wxLjQsMS40YzAuNCwwLjQsMSwwLjQsMS40LDAgICBDNS42LDguNiw5LjEsNywxMyw3czcuNCwxLjYsOS45LDQuMWMwLjQsMC40LDEsMC40LDEuNCwwbDEuNC0xLjRDMjUuOSw5LjUsMjYsOS4zLDI2LDlTMjUuOSw4LjQsMjUuNyw4LjN6IiBmaWxsPSIjODAxYTE1Ii8+CiAgICA8cGF0aCBkPSJtMTMsMTFjLTIuOCwwLTUuMiwxLjEtNywyLjktMC40LDAuNC0wLjQsMSAwLDEuNGwxLjQsMS40YzAuNCwwLjQgMSwwLjQgMS40LDAgMS4xLTEuMSAyLjYtMS43IDQuMi0xLjcgMS42LDAgMy4xLDAuNyA0LjIsMS43IDAuNCwwLjQgMSwwLjQgMS40LDBsMS40LTEuNGMwLjQtMC40IDAuNC0xIDAtMS40LTEuOC0xLjgtNC4yLTIuOS03LTIuOXoiIGZpbGw9IiM4MDFhMTUiLz4KICAgIDxjaXJjbGUgY3g9IjEzIiBjeT0iMjEiIHI9IjIiIGZpbGw9IiM4MDFhMTUiLz4KICA8L2c+Cjwvc3ZnPgo=";
+					statusIcon.className = "connection-status-icon disconnected";
+				}
+			}
+		}
+
+		function play() {
+			var pauseIcon = document.querySelector(".pause-icon");
+			if (pauseIcon) {
+				pauseIcon.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDQ1LjgxMiA0NS44MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDQ1LjgxMiA0NS44MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+Cgk8Zz4KCQk8Zz4KCQkJPHBhdGggZD0iTTM5LjEwNCw2LjcwOGMtOC45NDYtOC45NDMtMjMuNDQ5LTguOTQ2LTMyLjM5NSwwYy04Ljk0Niw4Ljk0NC04Ljk0NiwyMy40NDcsMCwzMi4zOTQgICAgIGM4Ljk0NCw4Ljk0NiwyMy40NDksOC45NDYsMzIuMzk1LDBDNDguMDQ3LDMwLjE1Niw0OC4wNDcsMTUuNjUzLDM5LjEwNCw2LjcwOHogTTIwLjA1MSwzMS43MDRjMCwxLjQ1OS0xLjE4MywyLjY0LTIuNjQxLDIuNjQgICAgIHMtMi42NC0xLjE4MS0yLjY0LTIuNjRWMTQuMTA4YzAtMS40NTcsMS4xODItMi42NCwyLjY0LTIuNjRzMi42NDEsMS4xODMsMi42NDEsMi42NFYzMS43MDR6IE0zMS4wNDEsMzEuNzA0ICAgICBjMCwxLjQ1OS0xLjE4MywyLjY0LTIuNjQsMi42NHMtMi42NC0xLjE4MS0yLjY0LTIuNjRWMTQuMTA4YzAtMS40NTcsMS4xODMtMi42NCwyLjY0LTIuNjRzMi42NCwxLjE4MywyLjY0LDIuNjRWMzEuNzA0eiIgZmlsbD0iIzI2MTc1OCIvPgoJCTwvZz4KCTwvZz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
+				pauseIcon.onclick = pause;
+				connectWebsocket();
+			}
+		}
+
+		function pause() {
+			var pauseIcon = document.querySelector(".pause-icon");
+			if (pauseIcon) {
+				pauseIcon.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTguMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDUxMiA1MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiB3aWR0aD0iMjRweCIgaGVpZ2h0PSIyNHB4Ij4KPHBhdGggZD0iTTI1NiwwQzExNC42MTcsMCwwLDExNC42MTUsMCwyNTZzMTE0LjYxNywyNTYsMjU2LDI1NnMyNTYtMTE0LjYxNSwyNTYtMjU2UzM5Ny4zODMsMCwyNTYsMHogTTM0NC40OCwyNjkuNTdsLTEyOCw4MCAgYy0yLjU5LDEuNjE3LTUuNTM1LDIuNDMtOC40OCwyLjQzYy0yLjY2OCwwLTUuMzQtMC42NjQtNy43NTgtMi4wMDhDMTk1LjE1NiwzNDcuMTcyLDE5MiwzNDEuODIsMTkyLDMzNlYxNzYgIGMwLTUuODIsMy4xNTYtMTEuMTcyLDguMjQyLTEzLjk5MmM1LjA4Ni0yLjgzNiwxMS4zMDUtMi42NjQsMTYuMjM4LDAuNDIybDEyOCw4MGM0LjY3NiwyLjkzLDcuNTIsOC4wNTUsNy41MiwxMy41NyAgUzM0OS4xNTYsMjY2LjY0MSwzNDQuNDgsMjY5LjU3eiIgZmlsbD0iIzI2MTc1OCIvPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8Zz4KPC9nPgo8L3N2Zz4K";
+				pauseIcon.onclick = play;
+				closeWebsocket();
+			}
+		}
+
+		var socket = null;
+
+		
+		function socketMessage() {
+		}
+
+		function socketOpen() {
+			updateStatus(true);
+		}
+
+		function socketClose() {
+			socket = null;
+			updateStatus(false);
+		}
+
+		function socketError() {
+			if (socket != null) {
+				socket.close();
+			}
+			socket = null;
+			updateStatus(false);
+		}
+
+		function connectWebsocket() {
+			if (socket != null) {
+				socket.close();
+			}
+			updateStatus(false);
+			var protocol = window.location.protocol ;
+			if( protocol === "http:" ) protocol = "ws:" ; else protocol = "wss:" ;
+			socket = new WebSocket( protocol + "//" + location.hostname + ":" + location.port + "/messages/");
+			socket.onopen = socketOpen;
+			socket.onmessage = socketMessage;
+			socket.onclose = socketClose;
+			socket.onerror = socketError;
+		}
+
+		function closeWebsocket() {
+			if (socket != null) {
+				socket.close();
+			}
+		}
+
+		play();
+	</script>
+
+</body>
+</html>
