@@ -2,6 +2,7 @@ package com.rc;
 
 import java.io.IOException;
 
+import org.eclipse.jetty.io.RuntimeIOException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -15,28 +16,48 @@ public class WebSocketServer {
 	private static Logger log = LoggerFactory.getLogger(WebSocketServer.class);
 
 	public static Session sender ;
-	
-    @OnWebSocketConnect
-    public void onConnect(Session user) throws Exception {
-    	sender = user ;
-    	log.info("Client WS connected" ) ;
-    }
 
-    @OnWebSocketClose
-    public void onClose(Session user, int statusCode, String reason) {
-    	log.info("Client WS finished" ) ;
-    	sender = null ;
-    }
+	@OnWebSocketConnect
+	public void onConnect(Session user) throws Exception {
+		sender = user ;
+		log.info("Client WS connected" ) ;
+	}
 
-    @OnWebSocketMessage
-    public void onMessage( Session user, String message) {
-    	log.info("Client WS msg received" ) ;
-    }
-    
-    public static void send( String msg ) throws IOException {
-    	if( sender != null && sender.isOpen() ) {
-    		sender.getRemote().sendString( msg ) ;
-    	}
-    }
+	@OnWebSocketClose
+	public void onClose(Session user, int statusCode, String reason) {
+		log.info("Client WS finished" ) ;
+		sender = null ;
+	}
+
+	@OnWebSocketMessage
+	public void onMessage( Session user, String message) {
+		log.info("Client WS msg received" ) ;
+	}
+
+	public static void send( String msg ) {
+		if( sender != null && sender.isOpen() ) {
+			try {
+				sender.getRemote().sendString( msg ) ;
+			} catch( IOException ioe ) {
+				throw new RuntimeIOException( ioe ) ;
+			}
+		}
+	}
+
+	public WebSocketServer() {
+		Thread t = new Thread( WebSocketServer::loop ) ;
+		t.start();
+	}
+
+	public static void loop() {
+		try {
+			while( true ) {    		
+				Thread.sleep( 5000 ) ;
+				WebSocketServer.send( "hi" ); ;
+			}
+		} catch( InterruptedException iex ) {
+			// ignore
+		}
+	}
 }
 
