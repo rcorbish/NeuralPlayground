@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 public class WebSocketServer {
 	private static Logger log = LoggerFactory.getLogger(WebSocketServer.class);
 
+	private volatile Thread t = null ;
 	public static Session sender ;
 
 	@OnWebSocketConnect
@@ -31,6 +32,9 @@ public class WebSocketServer {
 
 	@OnWebSocketMessage
 	public void onMessage( Session user, String message) {
+		if( "hi".equalsIgnoreCase(message) ) {
+			begin() ;
+		}
 		log.info("Client WS msg received" ) ;
 	}
 
@@ -44,12 +48,14 @@ public class WebSocketServer {
 		}
 	}
 
-	public WebSocketServer() {
-		Thread t = new Thread( WebSocketServer::loop ) ;
-		t.start();
+	public void begin() {
+		if( t != null ) {
+			t = new Thread( this::loop ) ;
+			t.start();
+		}
 	}
 
-	public static void loop() {
+	public void loop() {
 		try {
 			while( true ) {    		
 				Thread.sleep( 5000 ) ;
@@ -58,6 +64,7 @@ public class WebSocketServer {
 		} catch( InterruptedException iex ) {
 			// ignore
 		}
+		t = null ;
 	}
 }
 
