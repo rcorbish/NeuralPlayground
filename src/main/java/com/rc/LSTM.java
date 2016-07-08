@@ -68,14 +68,15 @@ public class LSTM extends Model {
 
 				for( int j=1 ; j<timeSeriesLength ; j++ ) {
 					ix[2] = j ;
+					
 					int v = row[j-1].charAt(0) - 'A' ;
-					if( v>numInputs ) v = numInputs-1 ;
+					if( v>=numInputs ) v = numInputs-1 ;
 					if( v<0 ) v = 0 ;
 					ix[1] = v ;
 					input.putScalar( ix, 1.0 ) ;
 
 					int w = row[j].charAt(0) - 'A' ;
-					if( w>numInputs ) w = numInputs-1 ;
+					if( w>=numInputs ) w = numInputs-1 ;
 					if( w<0 ) w = 0 ;
 					ix[1] = w ;					
 					labels.putScalar( ix, 1.0 ) ;				
