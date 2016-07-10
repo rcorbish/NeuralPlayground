@@ -20,8 +20,8 @@ public class TextAnalyzer extends Model {
 	private static Logger log = LoggerFactory.getLogger(TextAnalyzer.class);
 
 	@Override
-	public Evaluation test( Path testData ) throws Exception {
-		return null ;
+	public String test( Path testData ) throws Exception {
+		return "" ;
 	}
 	
 	@Override

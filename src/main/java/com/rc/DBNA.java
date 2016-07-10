@@ -76,7 +76,7 @@ public class DBNA extends Model {
 	}
 
 
-	public Evaluation test( Path testData ) throws Exception {
+	public String test( Path testData ) throws Exception {
 
 		Evaluation eval = null ;
 		if( testData != null ) {
@@ -97,7 +97,7 @@ public class DBNA extends Model {
 			log.info("All Done");
 
 		}
-		return eval ;
+		return eval.stats() ;
 	}
 
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {

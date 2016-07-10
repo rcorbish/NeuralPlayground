@@ -7,7 +7,8 @@ ADD src/main/resources  /home/nn/resources
 ADD target/classes  /home/nn/classes
 ADD target/dependency /home/nn/libs
 
-RUN chmod 0500 run.sh
+RUN chmod 0500 run.sh ; \
+	sed -i "s/\${VERSION}/$(date)/g" resources/templates/layout.jade
 ENV CP classes:resources
 
 VOLUME [ "/home/nn/data" ]

@@ -41,6 +41,7 @@ abstract public class Model {
 	int numInputs ;
 	int labelIndices[] ;
 	int numOutputs ;
+	int batchSize ;
 
 	public Model() {
 		this.configDir = null ;
@@ -86,7 +87,7 @@ abstract public class Model {
 	}
 
 	abstract public BlockingQueue<String> train( Path data ) throws Exception ;
-	abstract public Evaluation test(  Path ata ) throws Exception ;
+	abstract public String test(  Path ata ) throws Exception ;
 
 	public void saveModel( boolean saveUpdater ) throws IOException {
 

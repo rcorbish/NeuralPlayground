@@ -73,7 +73,7 @@ public class MultiLayer extends Model {
 		return sil.getStream() ;
 	}
 	@Override
-	public Evaluation test( Path testData ) throws Exception {
+	public String test( Path testData ) throws Exception {
 
 		RecordReader recordReader = new CSVRecordReader(1);
 
@@ -93,7 +93,7 @@ public class MultiLayer extends Model {
 		log.info(eval.stats());
 		log.info("All Done");
 		
-		return eval ;
+		return eval.stats() ;
 	}
 
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {

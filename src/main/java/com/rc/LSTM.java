@@ -6,16 +6,18 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
+import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.weights.WeightInit;
@@ -29,6 +31,7 @@ import org.slf4j.LoggerFactory;
 public class LSTM extends Model {
 
 	private static Logger log = LoggerFactory.getLogger(LSTM.class);
+	private Random random = new Random( 300 ) ;
 
 	public LSTM( Path configDir ) throws IOException {
 		super( configDir ) ;
@@ -41,6 +44,8 @@ public class LSTM extends Model {
 
 	protected Collection<DataSet> getDatasets( Path source ) throws IOException {
 
+		this.batchSize = 50 ;
+
 		log.info("Load data from " + source );
 
 		List<String[]> cols = Files.lines( source ) 
@@ -50,15 +55,15 @@ public class LSTM extends Model {
 
 		List<DataSet> dsets = new ArrayList<>() ;
 
-		int timeSeriesLength = cols.get(0).length ;
+		int timeSeriesLength = ( cols.get(0).length / numInputs ) - 1 ;
 
 		int numRowsProcessed = 0 ;
 		while( numRowsProcessed<cols.size() ) {
 
-			int batchSize = Math.min( 50, (cols.size()-numRowsProcessed) ) ;
+			int batchSize = Math.min( this.batchSize, (cols.size()-numRowsProcessed) ) ;
 
-			INDArray input  = Nd4j.zeros(batchSize, numInputs, timeSeriesLength ) ;
-			INDArray labels = Nd4j.zeros(batchSize, numInputs, timeSeriesLength ) ;
+			INDArray input  = Nd4j.create(batchSize, numInputs, timeSeriesLength ) ;
+			INDArray labels = Nd4j.create(batchSize, numOutputs, timeSeriesLength ) ;
 
 			int ix[] = new int[3] ;
 			for( int i=0 ; i<batchSize ; i++ ) {
@@ -66,20 +71,19 @@ public class LSTM extends Model {
 				String row[] = cols.get(numRowsProcessed) ;
 				numRowsProcessed++ ;
 
-				for( int j=1 ; j<timeSeriesLength ; j++ ) {
+				for( int j=0 ; j<timeSeriesLength ; j++ ) {
 					ix[2] = j ;
-					
-					int v = row[j-1].charAt(0) - 'A' ;
-					if( v>=numInputs ) v = numInputs-1 ;
-					if( v<0 ) v = 0 ;
-					ix[1] = v ;
-					input.putScalar( ix, 1.0 ) ;
 
-					int w = row[j].charAt(0) - 'A' ;
-					if( w>=numInputs ) w = numInputs-1 ;
-					if( w<0 ) w = 0 ;
-					ix[1] = w ;					
-					labels.putScalar( ix, 1.0 ) ;				
+					for( int k=0 ; k<numInputs ; k++ ) {
+						ix[1] = k ;
+						float n = Float.parseFloat( row[j*numInputs + k] ) ;
+						input.putScalar( ix, n ) ;
+					}
+					for( int k=0 ; k<numOutputs ; k++ ) {
+						ix[1] = k ;
+						float n = Float.parseFloat( row[(j+1)*numInputs + k] ) ;
+						labels.putScalar( ix, n ) ;
+					}
 				}
 			}
 			dsets.add( new DataSet(input,labels) ) ;
@@ -114,19 +118,35 @@ public class LSTM extends Model {
 
 
 	@Override
-	public Evaluation test(Path testData) throws Exception {
+	public String test(Path testData) throws Exception {
 
-		Collection<DataSet> dsets = getDatasets( testData ) ;
+		int numTests = 10 ;
+		int timeSeriesLength = 1 ;
+		StringBuilder rc = new StringBuilder() ;
 
-		Evaluation eval = new Evaluation();
-		for( DataSet ds : dsets ) { 
-			INDArray predict2 = getModel(0).output(ds.getFeatureMatrix(), Layer.TrainingMode.TEST);
-			eval.evalTimeSeries( ds.getFeatureMatrix(), predict2 ) ;
+		for( int t=0 ; t<numTests ; t++ ) {
+
+			INDArray input  = Nd4j.create(1, numInputs, timeSeriesLength ) ;
+
+			int ix[] = new int[3] ;
+			ix[0] = 0 ;
+			double n = random.nextDouble() ;
+
+			ix[2] = 0 ;
+			for( int k=0 ; k<numInputs ; k++ ) {
+				ix[1] = k ;
+				input.putScalar( ix, n ) ;
+			}
+
+			getModel(0).rnnClearPreviousState();
+			INDArray p1 = getModel(0).rnnTimeStep(input);
+			INDArray p2 = getModel(0).rnnTimeStep(input);
+			INDArray p3 = getModel(0).rnnTimeStep(input);
+			rc.append( "Input =" ).append( n ).append( " Output=").append( p1.getDouble( 0,0,0 ) ).append(',').append( p2.getDouble( 0,0,0 ) ).append(',').append( p3.getDouble( 0,0,0 ) ).append( "\n" );
 		}
-		log.info(eval.stats());
 		log.info("All Done");
 
-		return eval ;
+		return rc.toString() ;
 	}
 
 	public void createModelConfig( int numLayers, int numInputs, int numOutputs ) {
@@ -135,24 +155,39 @@ public class LSTM extends Model {
 
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed( 100 )
-				.iterations( 2 )
+				.iterations( 1 )
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-				.updater(org.deeplearning4j.nn.conf.Updater.RMSPROP)
-				.regularization(true).l2(1e-5)
+				.learningRate(0.1)
+				.rmsDecay(0.95)
+				.regularization(true)
+				.l2(0.001)
 				.weightInit(WeightInit.XAVIER)
-				.gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue).gradientNormalizationThreshold(1.0)
-				.learningRate(0.0018)
+				.updater(Updater.RMSPROP)
 				.list(numLayers)
 				;
 
 		for( int i=0 ; i<numLayers-1 ; i++ ) {
-			lb.layer(i, new GravesLSTM.Builder().nIn(numInputs).nOut(numInputs)
-					.activation("softsign").build()) ;
+			lb.layer(i, new GravesLSTM.Builder()
+					.nIn(numInputs)
+					.nOut(numInputs)
+					.activation("relu")
+					.build()
+					) ;
 		}
 
-		MultiLayerConfiguration conf = lb.layer(numLayers-1, new RnnOutputLayer.Builder().activation("softmax")
-				.lossFunction(LossFunctions.LossFunction.MCXENT).nIn(numInputs).nOut(numInputs).build())				
+		lb.layer( numLayers-1, new RnnOutputLayer.Builder()
+				.activation("relu")
+				.lossFunction(LossFunctions.LossFunction.MCXENT)
+				.nIn(numInputs)
+				.nOut(numInputs)
+				.build()
+				) ;
+
+		MultiLayerConfiguration conf = lb
 				.backprop(true)
+				.backpropType(BackpropType.TruncatedBPTT)
+				.tBPTTForwardLength(4)
+				.tBPTTBackwardLength(4)
 				.pretrain(false)
 				.build();
 

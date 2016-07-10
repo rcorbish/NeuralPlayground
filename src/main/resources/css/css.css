@@ -11,6 +11,15 @@ h1 {
 	animation: neon 0.75s ease-in-out infinite alternate;	
 }
 
+input {
+	display: block ;
+	font-size:16pt ;
+	background-color: #031303 ;
+	color: #FFF697 ;
+	margin: 8px ;
+}
+
+
 .design {
 	display: inline-block ;
 	position: relative ;
@@ -30,6 +39,7 @@ h1 {
 	color: #FFF697 ;
 	margin: 4px ;
 }
+
 
 .upload {
 	display: inline-block ;

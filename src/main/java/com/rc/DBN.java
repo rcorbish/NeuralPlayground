@@ -81,7 +81,7 @@ public class DBN extends Model {
 	}
 
 
-	public Evaluation test( Path testData ) throws Exception {
+	public String test( Path testData ) throws Exception {
 
 		RecordReader recordReader = new CSVRecordReader(1);
 
@@ -101,7 +101,7 @@ public class DBN extends Model {
 		log.info(eval.stats());
 		log.info("All Done");
 
-		return eval ;
+		return eval.stats() ;
 	}
 
 

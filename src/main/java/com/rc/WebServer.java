@@ -87,7 +87,8 @@ public class WebServer {
 
 		Filter filter = new RequiresAuthenticationFilter(config, "Basic") ;
 		before("/", (re,rs) -> { 
-			if( !re.pathInfo().equals("/login") && !re.pathInfo().equals("/") && !re.pathInfo().equals("/instructions")  ) {
+			log.info( "Opening page {}", re.pathInfo() );
+			if( !re.pathInfo().equals("/login")  ) {
 				filter.handle(re,rs) ; 
 			}
 		} );
@@ -131,7 +132,7 @@ public class WebServer {
 		Path p = Files.createTempFile( "test", ".dat" ) ;
 		log.info( "Saving to {}" , p ) ;
 		Files.write( p, request.bodyAsBytes() ) ;
-		String rc = nn.test( p ).stats() ;
+		String rc = nn.test( p ) ;
 		return rc ;
 	}
 
@@ -185,8 +186,9 @@ public class WebServer {
 
 	public ModelAndView home( Request request, Response response ) {
 		Map<String,Object> map = new HashMap<>() ;
-		return new ModelAndView( map, "templates/index" )  ;
+		return new ModelAndView( map, "templates/nnp" )  ;
 	}
+
 
 	public ModelAndView instructions( Request request, Response response ) {
 		Map<String,Object> map = new HashMap<>() ;
