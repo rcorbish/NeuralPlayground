@@ -32,7 +32,8 @@ public class LSTM extends Model {
 
 	private static Logger log = LoggerFactory.getLogger(LSTM.class);
 	private Random random = new Random( 300 ) ;
-
+	int timeSeriesLength = 0 ;
+	
 	public LSTM( Path configDir ) throws IOException {
 		super( configDir ) ;
 	}
@@ -44,7 +45,7 @@ public class LSTM extends Model {
 
 	protected Collection<DataSet> getDatasets( Path source ) throws IOException {
 
-		this.batchSize = 50 ;
+		this.batchSize = 150 ;
 
 		log.info("Load data from " + source );
 
@@ -76,12 +77,12 @@ public class LSTM extends Model {
 
 					for( int k=0 ; k<numInputs ; k++ ) {
 						ix[1] = k ;
-						float n = Float.parseFloat( row[j*numInputs + k] ) ;
+						float n = Float.parseFloat( row[(j*numInputs) + k] ) ;
 						input.putScalar( ix, n ) ;
 					}
 					for( int k=0 ; k<numOutputs ; k++ ) {
 						ix[1] = k ;
-						float n = Float.parseFloat( row[(j+1)*numInputs + k] ) ;
+						float n = Float.parseFloat( row[((j+1)*numInputs) + k] ) ;
 						labels.putScalar( ix, n ) ;
 					}
 				}
@@ -102,14 +103,36 @@ public class LSTM extends Model {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				for( int epoch=0 ; epoch<100 ; epoch++ ) {
-					log.info("Train model - epoch {}", epoch );
+				try {
+					for( int epoch=0 ; epoch<40000 ; epoch++ ) {
+						log.info("Train model - epoch {}", epoch );
+						double prevScore = getModel( 0 ).score() ;
 
-					for( DataSet ds : dsets ) { 
-						getModel( 0 ).fit( ds ) ;
-					}		
+						for( DataSet ds : dsets ) { 
+							getModel( 0 ).fit( ds ) ;
+//							INDArray a = ds.getLabels() ;
+//							float op = a.getFloat( new int[]{0,0,0}) ;
+//							a = ds.getFeatureMatrix() ;
+//							float i1 = a.getFloat( new int[]{0,0,0}) ;
+//							float i2 = a.getFloat( new int[]{0,1,0}) ;
+//							float i3 = a.getFloat( new int[]{0,2,0}) ;
+//							float i4 = a.getFloat( new int[]{0,3,0}) ;
+//							log.info( "{} , {}, {}, {} => {}", i1,i2,i3,i4,op ) ;
+						}		
+						double currentScore = getModel( 0 ).score() ;
+//						if( Math.abs(currentScore - prevScore) < 0.001 ) {
+//							log.info( "Aborting cycles; score improvement goal reached. Score: {}", currentScore ) ;
+//							break ;
+//						}
+					}
+					log.info("Training done.");
+					sil.getStream().offer( "Training done.");
+				} catch( IllegalStateException er ) {
+					log.error( "Error during training", er ) ;
+					sil.getStream().offer( er.getMessage() + "<br><br>Check number of inputs & outputs for compatability with your data." ) ;
+				} finally {
+					sil.getStream().offer( "" ) ;
 				}
-				log.info("Training done.");
 			}
 		} ;
 		new Thread( r ).start(); 
@@ -156,30 +179,35 @@ public class LSTM extends Model {
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed( 100 )
 				.iterations( 1 )
-				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT )
 				.learningRate(0.1)
 				.rmsDecay(0.95)
 				.regularization(true)
 				.l2(0.001)
-				.weightInit(WeightInit.XAVIER)
-				.updater(Updater.RMSPROP)
+				.weightInit(WeightInit.XAVIER )
+				.updater(Updater.RMSPROP )
 				.list(numLayers)
 				;
 
+		float layerScaling = 0.75f ;
+		int ni = numInputs ;
+		int no = (int)(numInputs * layerScaling) ;
 		for( int i=0 ; i<numLayers-1 ; i++ ) {
 			lb.layer(i, new GravesLSTM.Builder()
-					.nIn(numInputs)
-					.nOut(numInputs)
+					.nIn(ni)
+					.nOut(no)
 					.activation("relu")
 					.build()
 					) ;
+			ni = no ;
+			no *= layerScaling ;
 		}
 
 		lb.layer( numLayers-1, new RnnOutputLayer.Builder()
 				.activation("relu")
-				.lossFunction(LossFunctions.LossFunction.MCXENT)
-				.nIn(numInputs)
-				.nOut(numInputs)
+				.lossFunction(LossFunctions.LossFunction.SQUARED_LOSS )
+				.nIn(ni)
+				.nOut(numOutputs)
 				.build()
 				) ;
 
