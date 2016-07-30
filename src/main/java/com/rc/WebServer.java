@@ -8,17 +8,13 @@ import static spark.Spark.post;
 import static spark.Spark.staticFiles;
 import static spark.Spark.webSocket;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -32,7 +28,7 @@ import org.pac4j.core.config.Config;
 import org.pac4j.core.exception.CredentialsException;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.util.CommonHelper;
-import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
+import org.pac4j.http.client.indirect.FormClient;
 import org.pac4j.http.credentials.UsernamePasswordCredentials;
 import org.pac4j.http.credentials.authenticator.UsernamePasswordAuthenticator;
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
@@ -74,31 +70,40 @@ public class WebServer {
 		jadeConfig.setCaching( false ) ;
 		jadeConfig.setTemplateLoader(templateLoader);
 
-		final IndirectBasicAuthClient basicAuthClient = new IndirectBasicAuthClient();
+//		final IndirectBasicAuthClient basicAuthClient = new IndirectBasicAuthClient();
+		final FormClient authClient = new FormClient();
 		Path pwds = Paths.get("data/pwds") ;
 		if( !Files.isReadable(pwds) ) pwds = Paths.get("pwds") ;
 		
-		basicAuthClient.setAuthenticator( new SimpleAuthenticator( pwds ) );
-		basicAuthClient.setName( "Basic");
-		final Clients clients = new Clients( "/login", basicAuthClient ) ;
+		authClient.setAuthenticator( new SimpleAuthenticator( pwds ) );
+		authClient.setName( "Basic" );
+		authClient.setLoginUrl( "/login-form" );
+		authClient.setCallbackUrl( "/login" );
+		authClient.setUsernameParameter( "uid" ); 
+		authClient.setPasswordParameter( "pwd" );
+		
+		final Clients clients = new Clients( "/login", authClient ) ;
 		final Config config = new Config(clients);
 		config.setHttpActionAdapter(new DefaultHttpActionAdapter() );
-
+		
 		Filter filter = new RequiresAuthenticationFilter(config, "Basic") ;
 		before("/", (re,rs) -> { 
 			log.info( "Opening page {}", re.pathInfo() );
-			if( !re.pathInfo().equals("/login")  ) {
+			if( !re.pathInfo().equals("/login") ) {
 				filter.handle(re,rs) ; 
 			}
 		} );
 
 		final Route callback = new CallbackRoute(config);		
-		get( "/login", callback) ;
+		post( "/login", callback) ;
 
-		get( "/", this::home, new JadeTemplateEngine( jadeConfig ) ) ;
+		get( "/", this::main, new JadeTemplateEngine( jadeConfig ) ) ;
 		get( "/instructions", this::instructions, new JadeTemplateEngine( jadeConfig ) ) ;
 		
 		get( "/config.json", this::config ) ;
+		
+		get( "/login-form", this::index, new JadeTemplateEngine( jadeConfig ) ) ;
+		
 		post( "/create", this::create ) ;
 		post( "/upload-train", this::uploadTrain ) ;
 		post( "/upload-test", this::uploadTest ) ;
@@ -183,7 +188,16 @@ public class WebServer {
 		return nn.getModel(0).getLayerWiseConfigurations().toJson() ;
 	}
 
-	public ModelAndView home( Request request, Response response ) {
+	public ModelAndView index( Request request, Response response ) {
+		Map<String,Object> map = new HashMap<>() ;
+		return new ModelAndView( map, "templates/index" )  ;
+	}
+
+	public ModelAndView login( Request request, Response response ) {
+		return null ;
+	}
+
+	public ModelAndView main( Request request, Response response ) {
 		Map<String,Object> map = new HashMap<>() ;
 		return new ModelAndView( map, "templates/nnp" )  ;
 	}
@@ -229,6 +243,7 @@ class SimpleAuthenticator implements UsernamePasswordAuthenticator {
 
 	@Override
 	public void validate(final UsernamePasswordCredentials credentials) {
+		logger.info( "Validating" ) ; 
 		if (credentials == null) {
 			throwsException("No credential");
 		}
