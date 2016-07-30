@@ -243,7 +243,6 @@ class SimpleAuthenticator implements UsernamePasswordAuthenticator {
 
 	@Override
 	public void validate(final UsernamePasswordCredentials credentials) {
-		logger.info( "Validating" ) ; 
 		if (credentials == null) {
 			throwsException("No credential");
 		}
@@ -257,10 +256,10 @@ class SimpleAuthenticator implements UsernamePasswordAuthenticator {
 		}
 		String storedpwd = pwds.get(username) ;
 		if( storedpwd == null ) {
-			throwsException("Unrecognized user");
+			throwsException("Unrecognized user " + username );
 		}
 		if( !storedpwd.equals(password)) {
-			throwsException("Username : '" + username + "' does not match password");
+			throwsException("Username : '" + username + "' does not match password: '" + password + "'." );
 		}
 		final HttpProfile profile = new HttpProfile();
 		profile.setId(username);
@@ -270,6 +269,7 @@ class SimpleAuthenticator implements UsernamePasswordAuthenticator {
 	}
 
 	protected void throwsException(final String message) {
+		logger.warn( "Failed login attempt {}", message ) ;
 		throw new CredentialsException(message);
 	}
 }
