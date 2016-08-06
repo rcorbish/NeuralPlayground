@@ -45,7 +45,7 @@ public class LSTM extends Model {
 
 	protected Collection<DataSet> getDatasets( Path source ) throws IOException {
 
-		this.batchSize = 150 ;
+		this.batchSize = 1 ;
 
 		log.info("Load data from " + source );
 
@@ -56,8 +56,8 @@ public class LSTM extends Model {
 
 		List<DataSet> dsets = new ArrayList<>() ;
 
-		int timeSeriesLength = ( cols.get(0).length / numInputs ) - 1 ;
-
+		int timeSeriesLength = ( cols.get(0).length / (numInputs+numOutputs) ) - 1 ;
+		log.info( "Using a time-series length of {} elements.", timeSeriesLength ) ;
 		int numRowsProcessed = 0 ;
 		while( numRowsProcessed<cols.size() ) {
 
@@ -68,6 +68,7 @@ public class LSTM extends Model {
 
 			int ix[] = new int[3] ;
 			for( int i=0 ; i<batchSize ; i++ ) {
+				int colIndex = 0 ; 
 				ix[0] = i ;
 				String row[] = cols.get(numRowsProcessed) ;
 				numRowsProcessed++ ;
@@ -75,14 +76,14 @@ public class LSTM extends Model {
 				for( int j=0 ; j<timeSeriesLength ; j++ ) {
 					ix[2] = j ;
 
-					for( int k=0 ; k<numInputs ; k++ ) {
+					for( int k=0 ; k<numInputs ; k++, colIndex++ ) {
 						ix[1] = k ;
-						float n = Float.parseFloat( row[(j*numInputs) + k] ) ;
+						float n = Float.parseFloat( row[colIndex] ) ;
 						input.putScalar( ix, n ) ;
 					}
-					for( int k=0 ; k<numOutputs ; k++ ) {
+					for( int k=0 ; k<numOutputs ; k++, colIndex++ ) {
 						ix[1] = k ;
-						float n = Float.parseFloat( row[((j+1)*numInputs) + k] ) ;
+						float n = Float.parseFloat( row[colIndex] ) ;
 						labels.putScalar( ix, n ) ;
 					}
 				}
@@ -95,7 +96,7 @@ public class LSTM extends Model {
 	@Override
 	public BlockingQueue<String> train( Path trainingData ) throws Exception {
 
-		StreamIterationListener sil = new StreamIterationListener(100) ;
+		StreamIterationListener sil = new StreamIterationListener(400) ;
 		forEach( mln -> mln.setListeners(sil) ) ;
 
 		Collection<DataSet> dsets = getDatasets( trainingData ) ;
@@ -104,7 +105,7 @@ public class LSTM extends Model {
 			@Override
 			public void run() {
 				try {
-					for( int epoch=0 ; epoch<40000 ; epoch++ ) {
+					for( int epoch=0 ; epoch<100 ; epoch++ ) {
 						log.info("Train model - epoch {}", epoch );
 						double prevScore = getModel( 0 ).score() ;
 
@@ -127,7 +128,7 @@ public class LSTM extends Model {
 					}
 					log.info("Training done.");
 					sil.getStream().offer( "Training done.");
-				} catch( IllegalStateException er ) {
+				} catch( Throwable er ) {
 					log.error( "Error during training", er ) ;
 					sil.getStream().offer( er.getMessage() + "<br><br>Check number of inputs & outputs for compatability with your data." ) ;
 				} finally {
@@ -176,20 +177,22 @@ public class LSTM extends Model {
 		this.numInputs = numInputs ;
 		this.numOutputs = numOutputs ;
 
+		
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed( 100 )
-				.iterations( 1 )
+				.iterations( 3 )
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT )
 				.learningRate(0.1)
 				.rmsDecay(0.95)
-				.regularization(true)
+				.regularization(false)  // l1,l2 & dropout disabled ?
 				.l2(0.001)
+				.dropOut( 0.05 )
 				.weightInit(WeightInit.XAVIER )
 				.updater(Updater.RMSPROP )
-				.list(numLayers)
+				.list()
 				;
 
-		float layerScaling = 0.75f ;
+		float layerScaling = 1.f ;
 		int ni = numInputs ;
 		int no = (int)(numInputs * layerScaling) ;
 		for( int i=0 ; i<numLayers-1 ; i++ ) {
@@ -213,9 +216,9 @@ public class LSTM extends Model {
 
 		MultiLayerConfiguration conf = lb
 				.backprop(true)
-				.backpropType(BackpropType.TruncatedBPTT)
-				.tBPTTForwardLength(4)
-				.tBPTTBackwardLength(4)
+//				.backpropType(BackpropType.TruncatedBPTT)
+//				.tBPTTForwardLength(4)
+//				.tBPTTBackwardLength(4)
 				.pretrain(false)
 				.build();
 

@@ -19,8 +19,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.canova.api.records.reader.RecordReader;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Updater;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -82,7 +80,7 @@ abstract public class Model {
 		}
 	}
 
-	protected RecordReader getRecordReader( Path dataFile  ) {
+	protected org.datavec.api.records.reader.RecordReader getRecordReader( Path dataFile  ) {
 		return null ;
 	}
 

@@ -25,15 +25,15 @@ public class DownloadIndexPrices {
 	private static String IndexUrlName = "https://fred.stlouisfed.org/categories/32255/downloaddata/STOCKMARKET_csv_2.zip" ;
 	private static String QuoteUrlName = "http://ichart.finance.yahoo.com/table.csv?s=" ;
 
-	public List<float[]> downloadedData( String ticker ) throws IOException {
+	public List<float[]> downloadedData( int historyLength,  String ticker ) throws IOException {
 
-		int numLines = 200 ;
+		int numLines = historyLength ;
 		URL indexUrl = new URL( QuoteUrlName + ticker ) ;
 
 		List<float[]> rc = new ArrayList<>() ;
 		
 		HttpURLConnection indexConnection = (HttpURLConnection)indexUrl.openConnection() ;	
-		indexConnection.setRequestProperty("User-Agent", "El Braino");
+		indexConnection.setRequestProperty("User-Agent", "LSTM");
 		try( InputStream is = indexConnection.getInputStream() ; Reader r = new InputStreamReader(is) ; BufferedReader br = new BufferedReader(r) ; ) {		
 			String s = br.readLine() ;
 			SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd" ) ;
@@ -41,10 +41,10 @@ public class DownloadIndexPrices {
 				if( --numLines == 0 ) break ;
 				String cols[] = s.split( "," ) ;
 				float dt = Float.parseFloat( cols[0].replaceAll( "-", "" ) ) ; 
-				float high = Float.parseFloat( cols[2] ) / 100.f ; 
-				float low = Float.parseFloat( cols[3] ) / 100.f ;
-				float close = Float.parseFloat( cols[4] ) / 100.f ;
-				float volume = Float.parseFloat( cols[5] ) / 100000000.f ;
+				float high = Float.parseFloat( cols[2] ) ; 
+				float low = Float.parseFloat( cols[3] ) ;
+				float close = Float.parseFloat( cols[4] ) ;
+				float volume = Float.parseFloat( cols[5] ) ;
 				rc.add( new float[] { dt, close, high, low, volume } ) ;
 			}
 		} finally {

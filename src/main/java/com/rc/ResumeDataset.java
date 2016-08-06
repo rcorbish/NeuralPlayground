@@ -27,7 +27,7 @@ public class ResumeDataset {
 		return top1000Words ; 
 	}
 
-	public DataSetIterator getDatasetIterator(Path data ) throws IOException {
+	public org.nd4j.linalg.dataset.api.iterator.DataSetIterator getDatasetIterator(Path data ) throws IOException {
 		top1000Words = new ArrayList<>() ;
 
 		Map<String,Integer> dict = new HashMap<>() ;
@@ -75,7 +75,7 @@ public class ResumeDataset {
 			DataSet ds = new DataSet( features, features ) ;
 			al.add(ds) ;
 		}
-		DataSetIterator iter = new ListDataSetIterator( al, 100 ) ;
+		org.nd4j.linalg.dataset.api.iterator.DataSetIterator iter = new ListDataSetIterator( al, 100 ) ;
 		return iter ;
 	}
 

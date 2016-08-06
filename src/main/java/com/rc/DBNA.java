@@ -4,11 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 
-import org.canova.api.records.reader.RecordReader;
-import org.canova.api.records.reader.impl.CSVRecordReader;
-import org.canova.api.split.FileSplit;
-import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
-import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -43,10 +38,10 @@ public class DBNA extends Model {
 
 		log.info("Load data from " + trainingData );
 
-		RecordReader recordReader = new CSVRecordReader(1);
+		org.datavec.api.records.reader.RecordReader recordReader = new org.datavec.api.records.reader.impl.csv.CSVRecordReader(1);
 		// Point to data path. 
-		recordReader.initialize(new FileSplit(trainingData.toFile()));
-		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 250, 0, numInputs);
+		recordReader.initialize(new org.datavec.api.split.FileSplit(trainingData.toFile()));
+		org.nd4j.linalg.dataset.api.iterator.DataSetIterator iter = new org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator(recordReader, 250, 0, numInputs);
 
 		Runnable r = new Runnable() {
 			@Override
@@ -80,10 +75,10 @@ public class DBNA extends Model {
 
 		Evaluation eval = null ;
 		if( testData != null ) {
-			RecordReader recordReader = new CSVRecordReader(1);
+			org.datavec.api.records.reader.RecordReader recordReader = new org.datavec.api.records.reader.impl.csv.CSVRecordReader(1);
 			// Point to data path. 
-			recordReader.initialize(new FileSplit( testData.toFile() ) );
-			DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 250, 0, numInputs);
+			recordReader.initialize(new org.datavec.api.split.FileSplit( testData.toFile() ) );
+			org.nd4j.linalg.dataset.api.iterator.DataSetIterator iter = new org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator(recordReader, 250, 0, numInputs);
 
 			eval = new Evaluation( numInputs );
 

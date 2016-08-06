@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 
-import org.canova.api.records.reader.RecordReader;
-import org.canova.api.records.reader.impl.CSVRecordReader;
-import org.canova.api.split.FileSplit;
-import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
+import org.datavec.api.split.FileSplit;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
@@ -43,7 +43,7 @@ public class MultiLayer extends Model {
 
 		log.info("Load data from " + trainingData );
 
-		RecordReader recordReader = new CSVRecordReader(1);
+		org.datavec.api.records.reader.RecordReader recordReader = new org.datavec.api.records.reader.impl.csv.CSVRecordReader(1);
 		// Point to data path. 
 		recordReader.initialize(new FileSplit(trainingData.toFile()));
 		DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 250, 0, numOutputs);
