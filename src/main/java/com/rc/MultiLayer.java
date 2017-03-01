@@ -106,7 +106,7 @@ public class MultiLayer extends Model {
 				//.useDropConnect(true)
 				.learningRate(0.1)
 				.regularization(true).l2(1e-4)
-	            .list(numLayers)
+	            .list()
 	            ;
 		
 		for( int i=0 ; i<numLayers-1 ; i++ ) {

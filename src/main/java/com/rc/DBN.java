@@ -117,7 +117,7 @@ public class DBN extends Model {
 				.momentum(0.5)
 				.momentumAfter(Collections.singletonMap(3, 0.9))
 				.optimizationAlgo(OptimizationAlgorithm.CONJUGATE_GRADIENT)
-				.list(numLayers) ;
+				.list() ;
 		for( int i=0 ; i<(numLayers-1) ; i++ ) {
 			lb.layer(i, 
 				new RBM.Builder().nIn(numInputs).nOut(numInputs)

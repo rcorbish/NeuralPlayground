@@ -9,9 +9,11 @@ import static spark.Spark.staticFiles;
 import static spark.Spark.webSocket;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,12 +117,27 @@ public class WebServer {
 		log.info( "Train request" ); 
 		Path p = Files.createTempFile( "train", ".dat" ) ;
 		log.info( "Saving to {}" , p ) ;
-		Files.write( p, request.bodyAsBytes() ) ;
+		byte raw[] = request.bodyAsBytes() ;
+		int ix = 0 ;
+		boolean firstLineIsHeaders = false ;
+		while( raw[ix] != '\n' ) {
+			char c = (char)( (int)raw[ix] ) ;
+			ix++ ;
+			if( c!=',' && c!='-' && c!='.' && (c<'0' || c>'9') ) {
+				firstLineIsHeaders = true ;
+			}
+		}
+		if( firstLineIsHeaders ) {
+			log.info( "Chopping of first {} bytes as a header row", ix ) ;
+		}
+		byte[] slice = firstLineIsHeaders ? Arrays.copyOfRange(raw, ix+1, raw.length ) : raw ;
+		Files.write( p, slice ) ;
 		if( nn == null ) {
 			log.error( "Can't train a network that's not yet created." ); 
 			halt( 200, "Error: Please create a network before training." ) ;
 			return "Error: Please create a network before training." ;
 		}
+		
 		BlockingQueue<String> op = nn.train( p ) ;
 		String rc = "Nothing happened!" ;
 		String s = op.take() ;

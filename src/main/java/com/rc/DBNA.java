@@ -103,7 +103,7 @@ public class DBNA extends Model {
 				.seed(100)
 				.iterations(1000)
 				.optimizationAlgo(OptimizationAlgorithm.LINE_GRADIENT_DESCENT)
-				.list(numLayers) ;
+				.list() ;
 		for( int i=0 ; i<(numLayers-1) ; i++ ) {
 			lb.layer( i, 
 					new RBM.Builder().

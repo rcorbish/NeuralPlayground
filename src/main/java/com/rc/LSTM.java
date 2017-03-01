@@ -43,7 +43,7 @@ public class LSTM extends Model {
 	}
 
 
-	protected Collection<DataSet> getDatasets( Path source ) throws IOException {
+	protected List<DataSet> getDatasets( Path source ) throws IOException {
 
 		this.batchSize = 1 ;
 
@@ -63,8 +63,8 @@ public class LSTM extends Model {
 
 			int batchSize = Math.min( this.batchSize, (cols.size()-numRowsProcessed) ) ;
 
-			INDArray input  = Nd4j.create(batchSize, numInputs, timeSeriesLength ) ;
-			INDArray labels = Nd4j.create(batchSize, numOutputs, timeSeriesLength ) ;
+			INDArray input  = Nd4j.create( new int[]{ batchSize, numInputs, timeSeriesLength } , 'f' ) ;
+			INDArray labels = Nd4j.create( new int[]{ batchSize, numOutputs, timeSeriesLength }, 'f' ) ;
 
 			int ix[] = new int[3] ;
 			for( int i=0 ; i<batchSize ; i++ ) {
@@ -96,35 +96,29 @@ public class LSTM extends Model {
 	@Override
 	public BlockingQueue<String> train( Path trainingData ) throws Exception {
 
-		StreamIterationListener sil = new StreamIterationListener(400) ;
+		StreamIterationListener sil = new StreamIterationListener(100) ;
 		forEach( mln -> mln.setListeners(sil) ) ;
 
-		Collection<DataSet> dsets = getDatasets( trainingData ) ;
+		List<DataSet> dsets = getDatasets( trainingData ) ;
 
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
+				Evaluation eval = new Evaluation() ;
 				try {
-					for( int epoch=0 ; epoch<100 ; epoch++ ) {
-						log.info("Train model - epoch {}", epoch );
-						double prevScore = getModel( 0 ).score() ;
+					for( int epoch=0 ; epoch<1000 ; epoch++ ) {
 
 						for( DataSet ds : dsets ) { 
 							getModel( 0 ).fit( ds ) ;
-//							INDArray a = ds.getLabels() ;
-//							float op = a.getFloat( new int[]{0,0,0}) ;
-//							a = ds.getFeatureMatrix() ;
-//							float i1 = a.getFloat( new int[]{0,0,0}) ;
-//							float i2 = a.getFloat( new int[]{0,1,0}) ;
-//							float i3 = a.getFloat( new int[]{0,2,0}) ;
-//							float i4 = a.getFloat( new int[]{0,3,0}) ;
-//							log.info( "{} , {}, {}, {} => {}", i1,i2,i3,i4,op ) ;
 						}		
+						
+						INDArray rc = getModel( 0 ).output( dsets.get(0).getFeatures() ) ;
+						eval.evalTimeSeries(dsets.get(0).getLabels(), rc );
 						double currentScore = getModel( 0 ).score() ;
-//						if( Math.abs(currentScore - prevScore) < 0.001 ) {
-//							log.info( "Aborting cycles; score improvement goal reached. Score: {}", currentScore ) ;
-//							break ;
-//						}
+						log.info( "Epoch {}\tCurrent accuracy\t{}", epoch, eval.f1() ) ;
+						if( (epoch % 100 ) == 99 ) {
+							log.info( "{}", eval.stats() );
+						}
 					}
 					log.info("Training done.");
 					sil.getStream().offer( "Training done.");
@@ -150,7 +144,7 @@ public class LSTM extends Model {
 
 		for( int t=0 ; t<numTests ; t++ ) {
 
-			INDArray input  = Nd4j.create(1, numInputs, timeSeriesLength ) ;
+			INDArray input  = Nd4j.create( new int[] { 1, numInputs, timeSeriesLength }, 'f' ) ;
 
 			int ix[] = new int[3] ;
 			ix[0] = 0 ;
@@ -180,13 +174,13 @@ public class LSTM extends Model {
 		
 		ListBuilder lb = new NeuralNetConfiguration.Builder()
 				.seed( 100 )
-				.iterations( 3 )
+				.iterations( 1 )
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT )
-				.learningRate(0.1)
-				.rmsDecay(0.95)
-				.regularization(false)  // l1,l2 & dropout disabled ?
-				.l2(0.001)
-				.dropOut( 0.05 )
+				.learningRate(0.005)
+				//.rmsDecay(0.99)
+				.regularization(true)  // l1,l2 & dropout disabled ?
+				.l2(0.0001)
+				.dropOut( 0.001 )
 				.weightInit(WeightInit.XAVIER )
 				.updater(Updater.RMSPROP )
 				.list()
@@ -199,7 +193,7 @@ public class LSTM extends Model {
 			lb.layer(i, new GravesLSTM.Builder()
 					.nIn(ni)
 					.nOut(no)
-					.activation("relu")
+					.activation("tanh")
 					.build()
 					) ;
 			ni = no ;
@@ -207,8 +201,9 @@ public class LSTM extends Model {
 		}
 
 		lb.layer( numLayers-1, new RnnOutputLayer.Builder()
-				.activation("relu")
-				.lossFunction(LossFunctions.LossFunction.SQUARED_LOSS )
+				.activation("softmax")
+				.lossFunction(LossFunctions.LossFunction.MCXENT )
+				.weightInit(WeightInit.XAVIER)
 				.nIn(ni)
 				.nOut(numOutputs)
 				.build()

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +14,7 @@ public class Run {
 	private static Logger log = LoggerFactory.getLogger(Run.class);
 
 	public static void main(String[] args) throws IOException {
+
 		if( args.length < 1 ) {
 			System.err.println( "Missing arguments.");
 			System.exit( -1 );

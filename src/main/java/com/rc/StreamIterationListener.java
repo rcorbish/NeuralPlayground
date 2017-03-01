@@ -39,7 +39,7 @@ public class StreamIterationListener  implements IterationListener {
     public void iterationDone(Model model, int iteration) {
         if(printIterations <= 0)
             printIterations = 1;
-        if(iteration % printIterations == 0) {
+        if( (iteration % printIterations) == (printIterations-1) ) {
             invoke();
             double result = model.score();
             try {
