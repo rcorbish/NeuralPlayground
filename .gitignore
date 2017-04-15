@@ -1,0 +1,9 @@
+/target/
+/configs/
+.classpath
+.settings/
+*.csv
+pathToWriteto.txt
+src/main/resources/pwds
+test-data/
+

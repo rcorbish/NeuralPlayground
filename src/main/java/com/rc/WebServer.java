@@ -58,7 +58,7 @@ public class WebServer {
 
 	public WebServer() throws IOException {
 
-		staticFiles.location(".");
+		staticFiles.location("/");
 		staticFiles.expireTime(600);
 
 		webSocket("/messages", WebSocketServer.class);
@@ -85,12 +85,12 @@ public class WebServer {
 		authClient.setPasswordParameter( "pwd" );
 		
 		final Clients clients = new Clients( "/login", authClient ) ;
-		final Config config = new Config(clients);
-		config.setHttpActionAdapter(new DefaultHttpActionAdapter() );
+		final Config config = new Config(clients) ;
+		config.setHttpActionAdapter(new DefaultHttpActionAdapter() ) ;
 		
 		Filter filter = new RequiresAuthenticationFilter(config, "Basic") ;
 		before("/", (re,rs) -> { 
-			log.info( "Opening page {}", re.pathInfo() );
+			log.info( "Opening page {}", re.pathInfo() ) ;
 			if( !re.pathInfo().equals("/login") ) {
 				filter.handle(re,rs) ; 
 			}

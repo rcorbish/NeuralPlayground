@@ -1,5 +1,5 @@
-@import url(https://fonts.googleapis.com/css?family=Lato);
 @CHARSET "UTF-8";
+@import url(https://fonts.googleapis.com/css?family=Lato);
 
 html {
 	font-family: Lato ;
@@ -11,14 +11,29 @@ h1 {
 	animation: neon 0.75s ease-in-out infinite alternate;	
 }
 
+h6 {
+	color: #031303 ;
+	position: absolute ;
+	bottom: 0 ;
+	right: 0 ;
+	margin: 10px ;
+}
+
 input {
-	display: block ;
 	font-size:16pt ;
 	background-color: #031303 ;
 	color: #FFF697 ;
 	margin: 8px ;
 }
 
+#login-form {
+	xxpadding-top: 75px ;
+	xxwidth: 33% ;
+  	xxmargin: auto;	
+  	display: flex;
+    justify-content: center; /* for horizontal alignment */
+    align-items: center; /* for vertical alignment */
+}
 
 .design {
 	display: inline-block ;
@@ -33,11 +48,11 @@ input {
 }
 
 .design input,.design select {
-	display: block ;
 	font-size:10pt ;
 	background-color: #031303 ;
 	color: #FFF697 ;
-	margin: 4px ;
+	margin: 3px ;
+	padding: 0 ;
 }
 
 
