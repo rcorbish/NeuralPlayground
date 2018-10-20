@@ -9,7 +9,6 @@ import static spark.Spark.staticFiles;
 import static spark.Spark.webSocket;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,8 +22,6 @@ import java.util.concurrent.BlockingQueue;
 
 import javax.servlet.MultipartConfigElement;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.exception.CredentialsException;
@@ -160,9 +157,9 @@ public class WebServer {
 	public Object uploadConfig( Request request, Response response ) {
 		String config = request.body() ;
 		try { 
-			new JSONObject( config );
+			//new JSONObject( config ) ;
 			nn.addModel(config);
-		} catch( JSONException fail ) {
+		} catch( Exception fail ) {
 			halt( 402, "Invalid JSON" ) ;
 		}
 		return "OK" ;

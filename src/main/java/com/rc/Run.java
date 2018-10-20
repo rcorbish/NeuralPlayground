@@ -19,6 +19,7 @@ public class Run {
 			System.err.println( "Missing arguments.");
 			System.exit( -1 );
 		}
+		//log.info( "ND4J : {}", Nd4j.getBackend().toString() ) ;
 		
 		Path configDir = args.length>2 ? Paths.get( args[0] ) : null ;
 		Run self = new Run( configDir ) ;

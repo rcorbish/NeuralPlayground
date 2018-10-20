@@ -2,6 +2,8 @@
 /configs/
 .classpath
 .settings/
+bin/
+data/
 *.csv
 pathToWriteto.txt
 src/main/resources/pwds
